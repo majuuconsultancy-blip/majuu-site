@@ -1,4 +1,5 @@
-﻿import { SectionWrapper } from '../layout/SectionWrapper'
+import { SectionWrapper } from '../layout/SectionWrapper'
+import { RiskIcon } from '../ui/LineIcons'
 
 export function PainPointsSection({ content }) {
   return (
@@ -6,25 +7,26 @@ export function PainPointsSection({ content }) {
       id="why-majuu-matters"
       title={content.title}
       description={content.intro}
-      className="pb-8 pt-12 sm:pb-10 sm:pt-14"
+      className="pb-6 pt-14 sm:pb-8 sm:pt-16"
       headerClassName="mx-auto max-w-3xl text-center"
-      titleClassName="mx-auto text-3xl font-semibold tracking-[-0.03em] text-white sm:text-5xl"
-      descriptionClassName="mx-auto max-w-2xl text-base leading-8 text-white/72 sm:text-lg sm:leading-[1.7]"
+      titleClassName="mx-auto text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-5xl"
+      descriptionClassName="mx-auto max-w-2xl text-base leading-8 text-slate-700 sm:text-lg sm:leading-[1.75]"
     >
-      <div className="mx-auto mt-9 max-w-4xl rounded-[1.75rem] border border-white/10 bg-white/[0.03] px-5 py-6 sm:px-6 sm:py-7">
-        <ul className="grid gap-4 sm:grid-cols-2 sm:gap-x-7 sm:gap-y-5">
+      <div className="mx-auto mt-8 max-w-5xl rounded-[2rem] border border-rose-200/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,248,248,0.94))] px-5 py-6 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-7 sm:py-7">
+        <ul className="grid gap-3.5 sm:grid-cols-2 sm:gap-4">
           {content.painPoints.map((point) => (
-            <li key={point} className="flex items-start gap-3 text-left text-base leading-8 text-white/86 sm:text-lg sm:leading-[1.7]">
-              <span className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-300/72" />
-              <span>{point}</span>
+            <li
+              key={point}
+              className="flex items-center gap-3 rounded-[1.4rem] border border-rose-200/80 bg-white/88 px-4 py-4 text-left"
+            >
+              <RiskIcon />
+              <span className="text-base font-medium leading-7 text-slate-800 sm:text-lg">
+                {point}
+              </span>
             </li>
           ))}
         </ul>
       </div>
-
-      <p className="mx-auto mt-9 max-w-3xl text-center text-lg leading-8 text-white/92 sm:text-2xl sm:leading-[1.65]">
-        {content.line}
-      </p>
     </SectionWrapper>
   )
 }

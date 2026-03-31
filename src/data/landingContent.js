@@ -17,20 +17,18 @@ export const siteHeaderContent = {
 }
 
 export const heroContent = {
-  stages: ['Study Abroad', 'Work Abroad', 'Travel Abroad'],
+  stages: ['Work', 'Study', 'Travel'],
+  stageSuffix: 'Abroad',
   title: 'Made Accessible',
-  subtitle: 'A smarter way to explore opportunities abroad — all in one place.',
+  subtitle:
+    'A safer and smarter way to explore opportunities abroad, all in one place.',
 }
 
 export const whatIsMajuuContent = {
   title: 'What is MAJUU?',
-  intro:
-    'MAJUU is a platform that helps people explore study, work, and travel opportunities abroad with more clarity, confidence, and control.',
-  points: [
-    'Discover countries',
-    'Compare options',
-    'Move independently',
-    'Choose verified support',
+  paragraphs: [
+    'MAJUU is a platform that helps people explore study, work, and travel abroad opportunities with more clarity, control, and confidence.',
+    'Discover countries, compare options, find schools and jobs, move independently, or choose support from a list of verified partners.',
   ],
 }
 
@@ -40,24 +38,24 @@ export const phoneShowcaseContent = {
     {
       id: 'home',
       label: 'Home',
-      title: 'Everything you need, in one place.',
+      title: 'Everything you need in one place.',
       text: 'Stay informed, track progress, and move with clarity.',
       image: '/screenshots/home-screen.png',
       alt: 'MAJUU home screen preview',
     },
     {
       id: 'path-choice',
-      label: 'Path Choice',
-      title: 'Choose your path forward.',
-      text: 'Continue independently or move with guided support when you need it.',
+      label: 'PathChoice',
+      title: 'Choose to move independently or get guided support.',
+      text: 'Keep your momentum with clear choices and verified help when you need it.',
       image: '/screenshots/path-choice-screen.png',
       alt: 'MAJUU path choice screen preview',
     },
     {
       id: 'discovery',
-      label: 'Discovery',
-      title: 'Find the country that fits you best.',
-      text: 'Compare countries and discover options tailored to your goals.',
+      label: 'Discover',
+      title: 'Compare countries, find schools and jobs, and explore what fits you best.',
+      text: 'See the details that matter before you decide where to go next.',
       image: '/screenshots/discovery-screen.png',
       alt: 'MAJUU discovery screen preview',
     },
@@ -65,23 +63,21 @@ export const phoneShowcaseContent = {
 }
 
 export const whyMajuuMattersContent = {
-  title: 'Why MAJUU matters',
+  title: 'Why MAJUU Matters',
   intro:
-    'For many people, pursuing opportunities abroad still feels confusing, risky, and hard to trust.',
+    'Too many people pursuing opportunities abroad are misled, overcharged, or left in the dark.',
   painPoints: [
     'Unverified agencies',
     'Unclear information',
-    'Unsecured payments',
-    'Lack of reliable communication',
+    'Insecure payments',
+    'Unreliable communication',
   ],
-  line:
-    'People deserve clarity, guidance, and the right information before making life-changing decisions.',
 }
 
 export const solutionContent = {
-  title: 'How MAJUU helps',
+  title: 'The Better Way Forward',
   text:
-    'MAJUU makes the process more transparent, secure, and accessible — whether you choose to move independently or with verified support.',
+    'MAJUU makes the process more transparent, secure, and accessible, whether you choose to move independently or with verified support of your choice. This is because people deserve clarity, guidance, and the right information before making life-changing decisions.',
 }
 
 export const howItWorksContent = {
@@ -89,23 +85,23 @@ export const howItWorksContent = {
   steps: [
     {
       title: 'Explore',
-      text: 'Discover countries and paths that match what you want next.',
+      text: 'Discover countries and opportunities that match what you want next.',
     },
     {
-      title: 'Compare',
-      text: 'Review your options side by side with more context and clarity.',
+      title: 'Choose Help',
+      text: 'Go independently for free or choose guided support from verified partners.',
     },
     {
-      title: 'Move Forward',
-      text: 'Keep going on your own or choose verified support when you need it.',
+      title: 'Track Progress',
+      text: 'Follow your journey, documents, and application progress in one place.',
     },
   ],
 }
 
 export const downloadSectionContent = {
-  title: 'Start exploring with MAJUU',
+  title: 'Start Exploring with MAJUU',
   subtitle:
-    'Download the official Android release to begin your journey with clarity.',
+    'Download the official MAJUU Android app and begin your journey with clarity.',
   installTitle: 'How to install',
   installSteps: [
     'Download the APK to your Android device.',
@@ -126,13 +122,13 @@ export const communityContent = {
     title: 'Get updates from MAJUU',
     text: 'Be the first to hear about new releases, features, and launch updates.',
     placeholder: 'Enter your email',
-    button: 'Join waitlist',
+    button: 'Get Updates',
   },
   feedback: {
-    title: 'Help shape MAJUU',
+    title: 'Help Shape MAJUU',
     text: 'Share feedback, questions, or ideas that could make the platform stronger.',
     fields: {
-      name: 'Name (optional)',
+      name: 'Your name',
       email: 'Email (optional)',
       message: 'Feedback message',
     },

@@ -1,4 +1,4 @@
-﻿import { incrementApkDownloadCount } from '../../lib/supabase/landing'
+import { incrementApkDownloadCount } from '../../lib/supabase/landing'
 import { BrandLogo } from '../brand/BrandLogo'
 
 export function SiteHeader({ content }) {
@@ -9,7 +9,7 @@ export function SiteHeader({ content }) {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/8 bg-[rgba(3,5,5,0.9)]">
+    <header className="sticky top-0 z-50 border-b border-white/60 bg-[rgba(250,249,244,0.68)] shadow-[0_10px_35px_rgba(15,23,42,0.04)] backdrop-blur-2xl">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
         <BrandLogo wordmark={content.brand} logoSrc={content.logoSrc} />
 
@@ -19,7 +19,7 @@ export function SiteHeader({ content }) {
           target="_blank"
           rel="noopener noreferrer"
           onClick={handleDownloadClick}
-          className="inline-flex min-h-10 items-center justify-center rounded-full border border-emerald-200/18 bg-emerald-300/10 px-4 py-2 text-sm font-medium text-white transition hover:border-emerald-200/30 hover:bg-emerald-300/16"
+          className="inline-flex min-h-10 items-center justify-center rounded-full border border-emerald-700/12 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:border-emerald-700/18 hover:bg-emerald-50"
         >
           {content.downloadLabel}
         </a>

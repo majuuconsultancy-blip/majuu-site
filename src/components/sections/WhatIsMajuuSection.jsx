@@ -1,21 +1,34 @@
-﻿import { SectionWrapper } from '../layout/SectionWrapper'
+import { SectionWrapper } from '../layout/SectionWrapper'
 
 export function WhatIsMajuuSection({ content }) {
-  const supportLine = `${content.points.slice(0, -1).join(', ')}, or ${content.points.at(-1)}.`
+  const verifiedPhrase = 'verified partners'
+  const [beforeVerified, afterVerified] = content.paragraphs[1].split(verifiedPhrase)
+  const [beforeMajuu, afterMajuu] = content.paragraphs[0].split('MAJUU')
 
   return (
     <SectionWrapper
       id="what-is-majuu"
       title={content.title}
-      description={content.intro}
       className="pt-8 sm:pt-10"
+      containerClassName="max-w-5xl"
       headerClassName="max-w-3xl"
-      titleClassName="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-5xl"
-      descriptionClassName="max-w-2xl text-base leading-8 text-white/72 sm:text-lg sm:leading-[1.7]"
+      titleClassName="text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-5xl"
     >
-      <p className="mt-7 max-w-3xl text-sm leading-7 text-white/80 sm:text-base sm:leading-[1.75]">
-        <span className="font-medium text-white/92">{supportLine}</span>
-      </p>
+      <div className="mt-8 max-w-3xl space-y-5 text-base leading-8 text-slate-700 sm:text-lg sm:leading-[1.8]">
+        <p>
+          {beforeMajuu}
+          <span className="font-semibold text-emerald-700">MAJUU</span>
+          {afterMajuu}
+        </p>
+        <p>
+          {beforeVerified}
+          <span className="accent-script text-[1.08em] font-semibold text-emerald-700">
+            verified
+          </span>{' '}
+          partners
+          {afterVerified}
+        </p>
+      </div>
     </SectionWrapper>
   )
 }

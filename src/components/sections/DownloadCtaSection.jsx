@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   getApkDownloadCount,
   incrementApkDownloadCount,
@@ -77,31 +77,38 @@ export function DownloadCtaSection({ content }) {
       })
   }
 
+  const [beforeMajuu, afterMajuu] = content.title.split('MAJUU')
+
   return (
-    <section id="start-exploring" className="px-4 py-16 sm:px-6 sm:py-[4.5rem]">
-      <div className="mx-auto w-full max-w-5xl rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(8,13,12,0.96),rgba(4,6,7,0.98))] px-5 py-6 shadow-[0_20px_60px_rgba(0,0,0,0.34)] sm:px-8 sm:py-8">
-        <h2 className="mx-auto max-w-[12ch] text-center text-3xl font-semibold tracking-[-0.03em] text-white sm:text-5xl">
-          {content.title}
+    <section id="start-exploring" className="px-4 py-[4.5rem] sm:px-6 sm:py-20">
+      <div className="mx-auto w-full max-w-5xl rounded-[2.25rem] border border-slate-900/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(249,250,247,0.92))] px-5 py-7 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:px-8 sm:py-9">
+        <h2 className="mx-auto max-w-[13ch] text-balance text-center text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-5xl">
+          {beforeMajuu}
+          <span className="text-emerald-700">MAJUU</span>
+          {afterMajuu}
         </h2>
-        <p className="mx-auto mt-4 max-w-2xl text-center text-base leading-8 text-white/72 sm:text-lg sm:leading-[1.7]">
+        <p className="mx-auto mt-4 max-w-2xl text-balance text-center text-base leading-8 text-slate-700 sm:text-lg sm:leading-[1.75]">
           {content.subtitle}
         </p>
 
-        <div className="mt-9 border-t border-white/10 pt-7">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-200/72">
-            {content.installTitle}
-          </p>
+        <div className="section-divider mt-8" />
+
+        <div className="mt-7 rounded-[1.7rem] border border-slate-900/8 bg-white/80 px-5 py-5 sm:px-6">
+          <p className="eyebrow text-xs font-semibold uppercase">{content.installTitle}</p>
           <ol className="mt-4 grid gap-3">
             {content.installSteps.map((step, index) => (
-              <li key={step} className="flex gap-3 text-sm leading-7 text-white/76 sm:text-base sm:leading-[1.7]">
-                <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-emerald-200/18 text-xs text-emerald-100/82">
+              <li
+                key={step}
+                className="flex gap-3 text-sm leading-7 text-slate-700 sm:text-base sm:leading-[1.75]"
+              >
+                <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-emerald-700/14 bg-emerald-50 text-xs font-semibold text-emerald-700">
                   {index + 1}
                 </span>
                 <span>{step}</span>
               </li>
             ))}
           </ol>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-white/56 sm:leading-7">
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-500 sm:leading-7">
             {content.installNote}
           </p>
         </div>
@@ -113,13 +120,13 @@ export function DownloadCtaSection({ content }) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleDownloadClick}
-            className="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-full border border-emerald-200/16 bg-[linear-gradient(180deg,#36c88f,#14905f)] px-6 py-3 text-sm font-semibold text-slate-950 transition hover:brightness-105 sm:w-auto sm:min-w-[15rem]"
+            className="inline-flex min-h-[3.4rem] w-full items-center justify-center rounded-full border border-emerald-700/12 bg-white px-6 py-3 text-sm font-semibold text-emerald-700 shadow-[0_16px_40px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:border-emerald-700/18 hover:bg-emerald-50 sm:w-auto sm:min-w-[16rem]"
           >
             {content.buttonLabel}
           </a>
 
-          <div className="mt-4 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-center text-sm text-white/70 shadow-[0_8px_24px_rgba(0,0,0,0.18)]">
-            <span className="font-semibold text-emerald-100/88">{counterText}</span>
+          <div className="mt-4 inline-flex items-center justify-center rounded-full border border-emerald-700/12 bg-emerald-50/90 px-4 py-2 text-center text-sm text-slate-700 shadow-[0_8px_24px_rgba(13,143,97,0.08)]">
+            <span className="font-semibold text-emerald-800">{counterText}</span>
           </div>
         </div>
       </div>

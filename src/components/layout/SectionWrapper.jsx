@@ -1,4 +1,4 @@
-﻿export function SectionWrapper({
+export function SectionWrapper({
   sectionRef,
   id,
   eyebrow,
@@ -13,22 +13,23 @@
 }) {
   const headingId = title ? `${id}-heading` : undefined
   const resolvedTitleClassName =
-    titleClassName || 'text-3xl font-semibold tracking-[-0.03em] text-white sm:text-5xl'
+    titleClassName || 'text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-5xl'
   const resolvedDescriptionClassName =
-    descriptionClassName || 'max-w-2xl text-base leading-8 text-white/72 sm:text-lg sm:leading-[1.7]'
+    descriptionClassName ||
+    'max-w-2xl text-base leading-8 text-slate-700 sm:text-lg sm:leading-[1.75]'
 
   return (
     <section
       ref={sectionRef}
       id={id}
       aria-labelledby={headingId}
-      className={`px-4 py-16 sm:px-6 sm:py-[4.5rem] ${className}`}
+      className={`px-4 py-[4.5rem] sm:px-6 sm:py-20 ${className}`}
     >
       <div className={`mx-auto w-full ${containerClassName}`}>
         {(eyebrow || title || description) && (
-          <header className={`space-y-5 ${headerClassName}`}>
+          <header className={`space-y-6 ${headerClassName}`}>
             {eyebrow && (
-              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-emerald-200/72">
+              <p className="eyebrow text-[0.72rem] font-semibold uppercase">
                 {eyebrow}
               </p>
             )}
@@ -37,11 +38,7 @@
                 {title}
               </h2>
             )}
-            {description && (
-              <p className={resolvedDescriptionClassName}>
-                {description}
-              </p>
-            )}
+            {description && <p className={resolvedDescriptionClassName}>{description}</p>}
           </header>
         )}
 

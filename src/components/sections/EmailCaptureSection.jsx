@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import {
   createFeedbackSubmission,
   createWaitlistSignup,
@@ -27,8 +27,8 @@ export function EmailCaptureSection({ content }) {
       setWaitlistState({
         type: 'success',
         message: result.alreadyJoined
-          ? 'You are already on the waitlist.'
-          : 'You are on the waitlist.',
+          ? 'You are already set to receive updates.'
+          : 'You will now receive MAJUU updates.',
       })
     } catch (error) {
       setWaitlistState({
@@ -68,15 +68,15 @@ export function EmailCaptureSection({ content }) {
   return (
     <SectionWrapper
       id="community"
-      className="pt-10 sm:pt-12"
+      className="pt-12 sm:pt-14"
       containerClassName="max-w-6xl"
     >
       <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr]">
-        <section className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-5 shadow-[0_18px_48px_rgba(0,0,0,0.2)] sm:p-6">
-          <h2 className="text-2xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
+        <section className="surface-panel rounded-[2rem] p-5 sm:p-6">
+          <h2 className="text-balance text-2xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">
             {content.waitlist.title}
           </h2>
-          <p className="mt-4 max-w-md text-sm leading-7 text-white/70 sm:text-base sm:leading-[1.75]">
+          <p className="mt-4 max-w-md text-sm leading-7 text-slate-700 sm:text-base sm:leading-[1.75]">
             {content.waitlist.text}
           </p>
 
@@ -93,29 +93,33 @@ export function EmailCaptureSection({ content }) {
               value={waitlistEmail}
               onChange={(event) => setWaitlistEmail(event.target.value)}
               placeholder={content.waitlist.placeholder}
-              className="min-h-12 w-full rounded-full border border-white/12 bg-black/30 px-4 text-sm text-white placeholder:text-white/42 outline-none transition focus:border-emerald-200/28 focus:ring-2 focus:ring-emerald-200/10"
+              className="min-h-12 w-full rounded-full border border-slate-900/10 bg-white px-4 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-emerald-700/28 focus:ring-2 focus:ring-emerald-700/10"
             />
             <button
               type="submit"
               disabled={waitlistState.type === 'loading'}
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-slate-950 transition hover:bg-emerald-100 disabled:cursor-wait disabled:opacity-80"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-80"
             >
-              {waitlistState.type === 'loading' ? 'Joining...' : content.waitlist.button}
+              {waitlistState.type === 'loading' ? 'Saving...' : content.waitlist.button}
             </button>
           </form>
 
           {waitlistState.message && (
-            <p className={`mt-3 text-sm ${waitlistState.type === 'error' ? 'text-rose-200' : 'text-emerald-100/76'}`}>
+            <p
+              className={`mt-3 text-sm ${
+                waitlistState.type === 'error' ? 'text-rose-600' : 'text-emerald-700'
+              }`}
+            >
               {waitlistState.message}
             </p>
           )}
         </section>
 
-        <section className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-5 shadow-[0_18px_48px_rgba(0,0,0,0.2)] sm:p-6">
-          <h2 className="text-center text-2xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
+        <section className="surface-panel rounded-[2rem] p-5 sm:p-6">
+          <h2 className="text-balance text-center text-2xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">
             {content.feedback.title}
           </h2>
-          <p className="mx-auto mt-4 max-w-lg text-center text-sm leading-7 text-white/70 sm:text-base sm:leading-[1.75]">
+          <p className="mx-auto mt-4 max-w-lg text-balance text-center text-sm leading-7 text-slate-700 sm:text-base sm:leading-[1.75]">
             {content.feedback.text}
           </p>
 
@@ -125,10 +129,11 @@ export function EmailCaptureSection({ content }) {
               <input
                 type="text"
                 name="name"
+                required
                 value={feedbackValues.name}
                 onChange={handleFeedbackChange}
                 placeholder={content.feedback.fields.name}
-                className="min-h-12 w-full rounded-2xl border border-white/12 bg-black/30 px-4 text-sm text-white placeholder:text-white/42 outline-none transition focus:border-emerald-200/28 focus:ring-2 focus:ring-emerald-200/10"
+                className="min-h-12 w-full rounded-2xl border border-slate-900/10 bg-white px-4 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-emerald-700/28 focus:ring-2 focus:ring-emerald-700/10"
               />
             </label>
 
@@ -141,7 +146,7 @@ export function EmailCaptureSection({ content }) {
                 value={feedbackValues.email}
                 onChange={handleFeedbackChange}
                 placeholder={content.feedback.fields.email}
-                className="min-h-12 w-full rounded-2xl border border-white/12 bg-black/30 px-4 text-sm text-white placeholder:text-white/42 outline-none transition focus:border-emerald-200/28 focus:ring-2 focus:ring-emerald-200/10"
+                className="min-h-12 w-full rounded-2xl border border-slate-900/10 bg-white px-4 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-emerald-700/28 focus:ring-2 focus:ring-emerald-700/10"
               />
             </label>
 
@@ -154,21 +159,25 @@ export function EmailCaptureSection({ content }) {
                 value={feedbackValues.message}
                 onChange={handleFeedbackChange}
                 placeholder={content.feedback.fields.message}
-                className="w-full rounded-[1.4rem] border border-white/12 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/42 outline-none transition focus:border-emerald-200/28 focus:ring-2 focus:ring-emerald-200/10"
+                className="w-full rounded-[1.4rem] border border-slate-900/10 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-emerald-700/28 focus:ring-2 focus:ring-emerald-700/10"
               />
             </label>
 
             <button
               type="submit"
               disabled={feedbackState.type === 'loading'}
-              className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/12 bg-white/[0.06] px-5 text-sm font-semibold text-white transition hover:border-emerald-200/24 hover:bg-white/[0.09] disabled:cursor-wait disabled:opacity-80"
+              className="inline-flex min-h-12 items-center justify-center rounded-full border border-slate-900/10 bg-white px-5 text-sm font-semibold text-slate-950 transition hover:border-emerald-700/18 hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-80"
             >
               {feedbackState.type === 'loading' ? 'Sending...' : content.feedback.button}
             </button>
           </form>
 
           {feedbackState.message && (
-            <p className={`mt-3 text-sm ${feedbackState.type === 'error' ? 'text-rose-200' : 'text-emerald-100/76'}`}>
+            <p
+              className={`mt-3 text-sm ${
+                feedbackState.type === 'error' ? 'text-rose-600' : 'text-emerald-700'
+              }`}
+            >
               {feedbackState.message}
             </p>
           )}
