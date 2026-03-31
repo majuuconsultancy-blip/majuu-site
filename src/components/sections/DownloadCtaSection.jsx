@@ -120,6 +120,7 @@ export function DownloadCtaSection({ content }) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleDownloadClick}
+            aria-label="Download the MAJUU Android APK"
             className="inline-flex min-h-[3.4rem] w-full items-center justify-center rounded-full border border-emerald-700/12 bg-white px-6 py-3 text-sm font-semibold text-emerald-700 shadow-[0_16px_40px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:border-emerald-700/18 hover:bg-emerald-50 sm:w-auto sm:min-w-[16rem]"
           >
             {content.buttonLabel}

@@ -19,16 +19,29 @@ export const siteHeaderContent = {
 export const heroContent = {
   stages: ['Work', 'Study', 'Travel'],
   stageSuffix: 'Abroad',
-  title: 'Made Accessible',
+  searchPrompts: [
+    'Explore study abroad opportunities',
+    'Find work abroad programs',
+    'Download the MAJUU APK',
+    'Discover schools and jobs worldwide',
+    'Compare countries side by side',
+    'Apply independently or with support',
+    'Track your application progress',
+    'Find scholarships and internships',
+    'Safer, smarter opportunities abroad',
+    'Verified and favorite agents',
+    'Your journey, your way',
+  ],
+  title: 'From Kenya',
   subtitle:
-    'A safer and smarter way to explore opportunities abroad, all in one place.',
+    'Explore scholarships, schools, jobs etc., and get verified support to help you move abroad from Kenya with more clarity and expert guidance.',
 }
 
 export const whatIsMajuuContent = {
   title: 'What is MAJUU?',
   paragraphs: [
-    'MAJUU is a platform that helps people explore study, work, and travel abroad opportunities with more clarity, control, and confidence.',
-    'Discover countries, compare options, find schools and jobs, move independently, or choose support from a list of verified partners.',
+    'MAJUU is a platform that helps people in Kenya explore study, work, and travel abroad opportunities with more clarity, control, and confidence.',
+    'Discover countries, compare options, find scholarships, schools, and jobs, move independently, or choose support from a list of verified partners.',
   ],
 }
 
@@ -41,7 +54,7 @@ export const phoneShowcaseContent = {
       title: 'Everything you need in one place.',
       text: 'Stay informed, track progress, and move with clarity.',
       image: '/screenshots/home-screen.png',
-      alt: 'MAJUU home screen preview',
+      alt: 'MAJUU home screen showing study, work, and travel abroad options',
     },
     {
       id: 'path-choice',
@@ -49,15 +62,15 @@ export const phoneShowcaseContent = {
       title: 'Choose to move independently or get guided support.',
       text: 'Keep your momentum with clear choices and verified help when you need it.',
       image: '/screenshots/path-choice-screen.png',
-      alt: 'MAJUU path choice screen preview',
+      alt: 'MAJUU support choice screen for independent travel planning or verified support',
     },
     {
       id: 'discovery',
       label: 'Discover',
-      title: 'Compare countries, find schools and jobs, and explore what fits you best.',
+      title: 'Compare countries, schools, scholarships, and jobs abroad.',
       text: 'See the details that matter before you decide where to go next.',
       image: '/screenshots/discovery-screen.png',
-      alt: 'MAJUU discovery screen preview',
+      alt: 'MAJUU discovery screen comparing countries, schools, scholarships, and jobs abroad',
     },
   ],
 }
@@ -65,7 +78,7 @@ export const phoneShowcaseContent = {
 export const whyMajuuMattersContent = {
   title: 'Why MAJUU Matters',
   intro:
-    'Too many people pursuing opportunities abroad are misled, overcharged, or left in the dark.',
+    ' Alot of people pursuing study/work abroad opportunities are misled, overcharged, or fraudulently targeted.',
   painPoints: [
     'Unverified agencies',
     'Unclear information',
@@ -75,7 +88,7 @@ export const whyMajuuMattersContent = {
 }
 
 export const solutionContent = {
-  title: 'The Better Way Forward',
+  title: 'The Answer',
   text:
     'MAJUU makes the process more transparent, secure, and accessible, whether you choose to move independently or with verified support of your choice. This is because people deserve clarity, guidance, and the right information before making life-changing decisions.',
 }
@@ -101,7 +114,7 @@ export const howItWorksContent = {
 export const downloadSectionContent = {
   title: 'Start Exploring with MAJUU',
   subtitle:
-    'Download the official MAJUU Android app and begin your journey with clarity.',
+    'Download the official MAJUU Android app and explore study, work, and travel abroad options from Kenya with more clarity.',
   installTitle: 'How to install',
   installSteps: [
     'Download the APK to your Android device.',
@@ -158,8 +171,8 @@ export const contactContent = {
 }
 
 export const footerContent = {
-  brand: 'MAJUU Platform',
-  copyright: '© 2026 MAJUU Platform. All rights reserved.',
+  brand: 'Majuu Platform\u2122',
+  copyright: '© 2026 Majuu Platform\u2122. All rights reserved.',
   links: [
     { label: 'Platform', href: '#what-is-majuu' },
     { label: 'Privacy', href: privacyUrl },

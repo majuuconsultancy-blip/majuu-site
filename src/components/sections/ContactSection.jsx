@@ -26,6 +26,13 @@ export function ContactSection({ content }) {
             <a
               key={action.label}
               href={action.href}
+              aria-label={
+                action.label === 'WhatsApp'
+                  ? `Chat with MAJUU on WhatsApp at ${content.phoneDisplay}`
+                  : action.label === 'Call'
+                    ? `Call MAJUU at ${content.phoneDisplay}`
+                    : `Email MAJUU at ${content.email}`
+              }
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-slate-900/8 bg-white px-5 text-sm font-medium text-slate-800 shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:border-emerald-700/16 hover:text-emerald-700"
             >
               {Icon && <Icon className="h-4 w-4" />}
