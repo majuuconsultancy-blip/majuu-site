@@ -16,6 +16,7 @@ const NEXT_PROMPT_DELAY_MS = 220
 
 export function HeroSection({ content }) {
   const [beforeVerified, afterVerified] = content.subtitle.split('verified')
+  const [beforeKenya, afterKenya] = content.title.split('Kenya')
   const searchPrompts = content.searchPrompts ?? EMPTY_SEARCH_PROMPTS
   const [promptIndex, setPromptIndex] = useState(0)
   const [animatedPrompt, setAnimatedPrompt] = useState('')
@@ -146,7 +147,15 @@ export function HeroSection({ content }) {
           </div>
 
           <h1 className="mt-5 text-balance text-[clamp(2.45rem,9.2vw,5rem)] font-semibold tracking-[-0.05em] text-slate-950">
-            {content.title}
+            {beforeKenya}
+            {content.title.includes('Kenya') ? (
+              <span>
+                <span className="text-black">Ke</span>
+                <span className="text-[#bb1e10]">ny</span>
+                <span className="text-[#0b8f53]">a</span>
+              </span>
+            ) : null}
+            {afterKenya}
           </h1>
 
           <p className="mx-auto mt-5 max-w-2xl text-balance text-base leading-8 text-slate-700 sm:text-xl sm:leading-[1.75]">

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowDownToLine } from 'lucide-react'
 import {
   getApkDownloadCount,
   incrementApkDownloadCount,
@@ -121,9 +122,15 @@ export function DownloadCtaSection({ content }) {
             rel="noopener noreferrer"
             onClick={handleDownloadClick}
             aria-label="Download the MAJUU Android APK"
-            className="inline-flex min-h-[3.4rem] w-full items-center justify-center rounded-full border border-emerald-700/12 bg-white px-6 py-3 text-sm font-semibold text-emerald-700 shadow-[0_16px_40px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:border-emerald-700/18 hover:bg-emerald-50 sm:w-auto sm:min-w-[16rem]"
+            className="download-cta-button group inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold text-white sm:w-auto sm:min-w-[15.5rem]"
           >
-            {content.buttonLabel}
+            <span className="relative z-10 flex items-center gap-2 text-white">
+              <ArrowDownToLine
+                aria-hidden="true"
+                className="h-4 w-4 transition duration-300 group-hover:translate-y-0.5"
+              />
+              <span>{content.buttonLabel}</span>
+            </span>
           </a>
 
           <div className="mt-4 inline-flex items-center justify-center rounded-full border border-emerald-700/12 bg-emerald-50/90 px-4 py-2 text-center text-sm text-slate-700 shadow-[0_8px_24px_rgba(13,143,97,0.08)]">
