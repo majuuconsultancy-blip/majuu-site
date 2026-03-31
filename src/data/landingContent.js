@@ -27,7 +27,7 @@ export const heroContent = {
     'Compare countries side by side',
     'Apply independently or with support',
     'Track your application progress',
-    'Find scholarships and internships',
+    'Find scholarships',
     'Verified Agents',
     'Your journey, Your way',
   ],
@@ -77,7 +77,7 @@ export const phoneShowcaseContent = {
 export const whyMajuuMattersContent = {
   title: 'Why MAJUU Matters',
   intro:
-    ' Alot of people pursuing study/work abroad opportunities are misled, overcharged, or fraudulently targeted.',
+    ' Alot of people pursuing study/work abroad opportunities are misleed by unverified agents, unclear information, and unreliable support. This can lead to wasted time, money, and missed opportunities.',
   painPoints: [
     'Unverified agencies',
     'Unclear information',
@@ -89,7 +89,7 @@ export const whyMajuuMattersContent = {
 export const solutionContent = {
   title: 'The Answer',
   text:
-    'MAJUU makes the process more transparent, secure, and accessible, whether you choose to move independently or with verified support of your choice. This is because people deserve clarity, guidance, and the right information before making life-changing decisions.',
+    'MAJUU makes the process more transparent, secure, and accessible, whether you choose to move independently or with verified agency support of your choice. This is because people deserve clarity, guidance, and the right information before making life-changing decisions.',
 }
 
 export const howItWorksContent = {
@@ -97,7 +97,7 @@ export const howItWorksContent = {
   steps: [
     {
       title: 'Explore',
-      text: 'Discover countries and opportunities that match what you want next.',
+      text: 'Discover countries and opportunities that match your interests.',
     },
     {
       title: 'Choose Help',
@@ -105,7 +105,7 @@ export const howItWorksContent = {
     },
     {
       title: 'Track Progress',
-      text: 'Follow your journey, documents, and application progress in one place.',
+      text: 'Follow your journey and live application progress in one place.',
     },
   ],
 }

@@ -1,13 +1,17 @@
 import {
   ArrowRightLeft,
   BadgeAlert,
+  CircleX,
   BriefcaseBusiness,
   ChartNoAxesColumn,
   Compass,
+  CreditCard,
+  FileText,
   GraduationCap,
   HandHelping,
   House,
   Mail,
+  MessageSquareText,
   MessageCircleMore,
   Phone,
   PlaneTakeoff,
@@ -85,6 +89,35 @@ export function RiskIcon({ className = '' }) {
       {renderIcon(BadgeAlert, 'h-4 w-4')}
     </span>
   )
+}
+
+function PainPointIcon({ icon: IconComponent, className = '' }) {
+  return (
+    <span
+      className={`relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-rose-200 bg-[linear-gradient(180deg,#fff6f6,#ffeceb)] text-rose-600 shadow-[0_10px_24px_rgba(225,29,72,0.1)] ${className}`}
+    >
+      {renderIcon(IconComponent, 'h-5 w-5')}
+      <span className="absolute -right-1 -top-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-white bg-rose-500 text-white shadow-[0_6px_16px_rgba(225,29,72,0.22)]">
+        {renderIcon(CircleX, 'h-3.5 w-3.5')}
+      </span>
+    </span>
+  )
+}
+
+export function UnverifiedAgenciesIcon({ className = '' }) {
+  return <PainPointIcon icon={BriefcaseBusiness} className={className} />
+}
+
+export function UnclearInformationIcon({ className = '' }) {
+  return <PainPointIcon icon={FileText} className={className} />
+}
+
+export function InsecurePaymentsIcon({ className = '' }) {
+  return <PainPointIcon icon={CreditCard} className={className} />
+}
+
+export function UnreliableCommunicationIcon({ className = '' }) {
+  return <PainPointIcon icon={MessageSquareText} className={className} />
 }
 
 export function TrustIcon({ className = '' }) {
