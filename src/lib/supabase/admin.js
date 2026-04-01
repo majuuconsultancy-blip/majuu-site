@@ -4,6 +4,9 @@ const DOWNLOADS_ENABLED_KEY = 'downloads_enabled'
 const adminRedirectUrl =
   import.meta.env.VITE_MAJUU_ADMIN_REDIRECT_URL?.trim() ||
   import.meta.env.VITE_MAJUU_SITE_URL?.trim()
+const configuredAdminEmail =
+  import.meta.env.VITE_MAJUU_ADMIN_EMAIL?.trim().toLowerCase() ||
+  'brioneroo@gmail.com'
 
 function requireSupabase() {
   if (!isSupabaseConfigured || !supabase) {
@@ -11,6 +14,60 @@ function requireSupabase() {
   }
 
   return supabase
+}
+
+function isMissingAdminFunctionError(error) {
+  return (
+    typeof error?.message === 'string' &&
+    error.message.toLowerCase().includes('public.is_admin')
+  )
+}
+
+function isMissingSourceColumnError(error) {
+  return (
+    typeof error?.message === 'string' &&
+    error.message.toLowerCase().includes('source') &&
+    error.message.toLowerCase().includes('schema cache')
+  )
+}
+
+function isMissingRelationError(error) {
+  return (
+    typeof error?.message === 'string' &&
+    error.message.toLowerCase().includes('relation') &&
+    error.message.toLowerCase().includes('does not exist')
+  )
+}
+
+function isPermissionError(error) {
+  return (
+    typeof error?.message === 'string' &&
+    (error.message.toLowerCase().includes('permission denied') ||
+      error.message.toLowerCase().includes('row-level security') ||
+      error.message.toLowerCase().includes('new row violates row-level security'))
+  )
+}
+
+function isAdminSetupError(error) {
+  return (
+    isMissingAdminFunctionError(error) ||
+    isMissingRelationError(error) ||
+    isPermissionError(error)
+  )
+}
+
+async function getSessionEmail() {
+  const client = requireSupabase()
+  const {
+    data: { session },
+    error,
+  } = await client.auth.getSession()
+
+  if (error) {
+    throw error
+  }
+
+  return session?.user?.email?.toLowerCase() ?? ''
 }
 
 export async function signInAdmin(email) {
@@ -64,75 +121,163 @@ export function onAdminAuthStateChange(callback) {
 
 export async function checkAdminAccess() {
   const client = requireSupabase()
-  const { data, error } = await client.rpc('is_admin')
+  const signedInEmail = await getSessionEmail()
 
-  if (error) {
-    throw error
+  if (!signedInEmail) {
+    return {
+      authorized: false,
+      mode: 'secure',
+      missingSetup: false,
+    }
   }
 
-  return Boolean(data)
+  if (signedInEmail === configuredAdminEmail) {
+    try {
+      const { data, error } = await client.rpc('is_admin')
+
+      if (error) {
+        throw error
+      }
+
+      return {
+        authorized: true,
+        mode: data ? 'secure' : 'fallback',
+        missingSetup: !data,
+      }
+    } catch (error) {
+      if (!isMissingAdminFunctionError(error)) {
+        throw error
+      }
+
+      return {
+        authorized: true,
+        mode: 'fallback',
+        missingSetup: true,
+      }
+    }
+  }
+
+  try {
+    const { data, error } = await client.rpc('is_admin')
+
+    if (error) {
+      throw error
+    }
+
+    return {
+      authorized: Boolean(data),
+      mode: 'secure',
+      missingSetup: false,
+    }
+  } catch (error) {
+    if (!isMissingAdminFunctionError(error)) {
+      throw error
+    }
+
+    return {
+      authorized: signedInEmail === configuredAdminEmail,
+      mode: 'fallback',
+      missingSetup: true,
+    }
+  }
 }
 
 export async function getAdminDashboardData() {
   const client = requireSupabase()
+  const issues = []
 
-  const [metricsResponse, settingsResponse, waitlistResponse, feedbackResponse] =
-    await Promise.all([
-      client.from('landing_metrics').select('key, value, updated_at').order('key'),
-      client.from('landing_settings').select('key, enabled, updated_at').order('key'),
-      client
-        .from('waitlist_signups')
-        .select('id, email, source, created_at')
-        .order('created_at', { ascending: false }),
-      client
-        .from('feedback_entries')
-        .select('id, name, email, message, created_at')
-        .order('created_at', { ascending: false }),
-    ])
+  const metricsResponse = await client
+    .from('landing_metrics')
+    .select('key, value, updated_at')
+    .order('key')
 
   if (metricsResponse.error) {
     throw metricsResponse.error
   }
 
+  let settings = []
+  const settingsResponse = await client
+    .from('landing_settings')
+    .select('key, enabled, updated_at')
+    .order('key')
+
   if (settingsResponse.error) {
-    throw settingsResponse.error
-  }
-
-  let waitlist = waitlistResponse.data ?? []
-
-  const missingSourceColumn =
-    waitlistResponse.error &&
-    typeof waitlistResponse.error.message === 'string' &&
-    waitlistResponse.error.message.toLowerCase().includes('source') &&
-    waitlistResponse.error.message.toLowerCase().includes('schema cache')
-
-  if (missingSourceColumn) {
-    const fallbackWaitlistResponse = await client
-      .from('waitlist_signups')
-      .select('id, email, created_at')
-      .order('created_at', { ascending: false })
-
-    if (fallbackWaitlistResponse.error) {
-      throw fallbackWaitlistResponse.error
+    if (isAdminSetupError(settingsResponse.error)) {
+      issues.push(
+        'Landing settings are not fully set up yet, so the download toggle is temporarily unavailable.',
+      )
+    } else {
+      throw settingsResponse.error
     }
-
-    waitlist = (fallbackWaitlistResponse.data ?? []).map((entry) => ({
-      ...entry,
-      source: 'legacy',
-    }))
-  } else if (waitlistResponse.error) {
-    throw waitlistResponse.error
+  } else {
+    settings = settingsResponse.data ?? []
   }
+
+  let waitlist = []
+  const waitlistResponse = await client
+    .from('waitlist_signups')
+    .select('id, email, source, created_at')
+    .order('created_at', { ascending: false })
+
+  if (waitlistResponse.error) {
+    if (isMissingSourceColumnError(waitlistResponse.error)) {
+      const fallbackWaitlistResponse = await client
+        .from('waitlist_signups')
+        .select('id, email, created_at')
+        .order('created_at', { ascending: false })
+
+      if (fallbackWaitlistResponse.error) {
+        if (isAdminSetupError(fallbackWaitlistResponse.error)) {
+          issues.push(
+            'Waitlist exports are not fully enabled until the admin SQL migration is applied in Supabase.',
+          )
+        } else {
+          throw fallbackWaitlistResponse.error
+        }
+      } else {
+        waitlist = (fallbackWaitlistResponse.data ?? []).map((entry) => ({
+          ...entry,
+          source: 'legacy',
+        }))
+        issues.push(
+          'Waitlist source tracking is in legacy mode until the admin SQL migration is applied.',
+        )
+      }
+    } else if (isAdminSetupError(waitlistResponse.error)) {
+      issues.push(
+        'Waitlist exports are not fully enabled until the admin SQL migration is applied in Supabase.',
+      )
+    } else {
+      throw waitlistResponse.error
+    }
+  } else {
+    waitlist = waitlistResponse.data ?? []
+  }
+
+  let feedback = []
+  const feedbackResponse = await client
+    .from('feedback_entries')
+    .select('id, name, email, message, created_at')
+    .order('created_at', { ascending: false })
 
   if (feedbackResponse.error) {
-    throw feedbackResponse.error
+    if (isAdminSetupError(feedbackResponse.error)) {
+      issues.push(
+        'Feedback visibility is limited until the admin SQL migration is applied in Supabase.',
+      )
+    } else {
+      throw feedbackResponse.error
+    }
+  } else {
+    feedback = feedbackResponse.data ?? []
   }
 
   return {
     metrics: metricsResponse.data ?? [],
-    settings: settingsResponse.data ?? [],
+    settings,
     waitlist,
-    feedback: feedbackResponse.data ?? [],
+    feedback,
+    issues,
   }
 }
 
@@ -147,6 +292,12 @@ export async function setDownloadsEnabled(enabled) {
     .eq('key', DOWNLOADS_ENABLED_KEY)
 
   if (error) {
+    if (isAdminSetupError(error)) {
+      throw new Error(
+        'The download toggle is not ready yet. Run the admin SQL migration in Supabase, then refresh the dashboard.',
+      )
+    }
+
     throw error
   }
 
