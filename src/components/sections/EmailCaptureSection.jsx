@@ -22,7 +22,7 @@ export function EmailCaptureSection({ content }) {
     setWaitlistState({ type: 'loading', message: '' })
 
     try {
-      const result = await createWaitlistSignup(waitlistEmail)
+      const result = await createWaitlistSignup(waitlistEmail, 'updates_section')
       setWaitlistEmail('')
       setWaitlistState({
         type: 'success',

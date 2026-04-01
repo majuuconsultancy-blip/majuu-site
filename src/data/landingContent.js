@@ -11,6 +11,7 @@ const phoneInternational = '254799766626'
 export const siteHeaderContent = {
   brand: 'MAJUU',
   downloadLabel: 'Download APK',
+  downloadsEnabled: false,
   downloadUrl: apkDownloadUrl,
   downloadFileName: apkDownloadFileName,
   logoSrc: '/logo.png',
@@ -124,9 +125,21 @@ export const downloadSectionContent = {
   installNote:
     'Android may show a warning for apps installed outside the Play Store. This is normal for direct APK downloads.',
   buttonLabel: 'Download APK',
+  downloadsEnabled: false,
   counterLabel: 'early downloads',
   downloadUrl: apkDownloadUrl,
   downloadFileName: apkDownloadFileName,
+}
+
+export const downloadNoticeContent = {
+  title: 'Early Tester Access',
+  body:
+    'APK downloads are currently limited to our first testers while we complete the final rollout.',
+  note: 'MAJUU will be launching officially very soon.',
+  waitlistTitle: 'Join the waitlist for launch updates',
+  waitlistPlaceholder: 'Enter your email',
+  waitlistButton: 'Join waitlist',
+  buttonLabel: 'Got it',
 }
 
 export const communityContent = {

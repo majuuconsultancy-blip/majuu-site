@@ -5,7 +5,7 @@ import {
   incrementApkDownloadCount,
 } from '../../lib/supabase/landing'
 
-export function DownloadCtaSection({ content }) {
+export function DownloadCtaSection({ content, onDownloadUnavailable }) {
   const [downloadCount, setDownloadCount] = useState(0)
   const [displayCount, setDisplayCount] = useState(0)
   const displayCountRef = useRef(0)
@@ -68,7 +68,13 @@ export function DownloadCtaSection({ content }) {
     return `${formattedCount} ${content.counterLabel}`
   }, [content.counterLabel, displayCount])
 
-  const handleDownloadClick = () => {
+  const handleDownloadClick = (event) => {
+    if (!content.downloadsEnabled) {
+      event.preventDefault()
+      onDownloadUnavailable?.()
+      return
+    }
+
     void incrementApkDownloadCount()
       .then((nextCount) => {
         setDownloadCount(nextCount)
@@ -116,18 +122,29 @@ export function DownloadCtaSection({ content }) {
 
         <div className="mt-8 flex flex-col items-center">
           <a
-            href={content.downloadUrl}
-            download={content.downloadFileName}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={content.downloadsEnabled ? content.downloadUrl : undefined}
+            download={content.downloadsEnabled ? content.downloadFileName : undefined}
+            target={content.downloadsEnabled ? '_blank' : undefined}
+            rel={content.downloadsEnabled ? 'noopener noreferrer' : undefined}
             onClick={handleDownloadClick}
+            aria-disabled={!content.downloadsEnabled}
             aria-label="Download the MAJUU Android APK"
-            className="download-cta-button group inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold text-white sm:w-auto sm:min-w-[15.5rem]"
+            className={`download-cta-button group inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-full border px-5 py-2.5 text-sm font-semibold sm:w-auto sm:min-w-[15.5rem] ${
+              content.downloadsEnabled
+                ? 'border-emerald-700/12 bg-white text-emerald-700 shadow-[0_16px_40px_rgba(15,23,42,0.08)] hover:-translate-y-0.5 hover:border-emerald-700/18 hover:bg-emerald-50'
+                : 'border-emerald-700/12 bg-white text-emerald-700 shadow-[0_16px_40px_rgba(15,23,42,0.08)] hover:-translate-y-0.5 hover:border-emerald-700/18 hover:bg-emerald-50'
+            }`}
           >
-            <span className="relative z-10 flex items-center gap-2 text-white">
+            <span
+              className={`relative z-10 flex items-center gap-2 ${
+                content.downloadsEnabled ? 'text-emerald-700' : 'text-emerald-700'
+              }`}
+            >
               <ArrowDownToLine
                 aria-hidden="true"
-                className="h-4 w-4 transition duration-300 group-hover:translate-y-0.5"
+                className={`h-4 w-4 transition duration-300 ${
+                  content.downloadsEnabled ? 'group-hover:translate-y-0.5' : ''
+                }`}
               />
               <span>{content.buttonLabel}</span>
             </span>

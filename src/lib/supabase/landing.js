@@ -1,6 +1,8 @@
-﻿import { isSupabaseConfigured, supabase } from './client'
+import { isSupabaseConfigured, supabase } from './client'
 
 const APK_DOWNLOAD_KEY = 'apk_downloads'
+const SITE_VISITS_KEY = 'site_visits'
+const DOWNLOADS_ENABLED_KEY = 'downloads_enabled'
 
 function requireSupabase() {
   if (!isSupabaseConfigured || !supabase) {
@@ -41,11 +43,46 @@ export async function incrementApkDownloadCount() {
   return Number(data ?? 0)
 }
 
-export async function createWaitlistSignup(email) {
+export async function incrementSiteVisitCount() {
+  if (!isSupabaseConfigured || !supabase) {
+    return 0
+  }
+
+  const { data, error } = await supabase.rpc('increment_landing_metric', {
+    metric_key: SITE_VISITS_KEY,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return Number(data ?? 0)
+}
+
+export async function getDownloadsEnabled() {
+  if (!isSupabaseConfigured || !supabase) {
+    return false
+  }
+
+  const { data, error } = await supabase
+    .from('landing_settings')
+    .select('enabled')
+    .eq('key', DOWNLOADS_ENABLED_KEY)
+    .maybeSingle()
+
+  if (error) {
+    throw error
+  }
+
+  return Boolean(data?.enabled)
+}
+
+export async function createWaitlistSignup(email, source = 'updates_section') {
   const client = requireSupabase()
   const normalizedEmail = email.trim().toLowerCase()
   const { error } = await client.from('waitlist_signups').insert({
     email: normalizedEmail,
+    source,
   })
 
   if (error && error.code !== '23505') {
@@ -71,4 +108,3 @@ export async function createFeedbackSubmission({ name, email, message }) {
     throw error
   }
 }
-

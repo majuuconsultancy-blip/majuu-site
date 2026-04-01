@@ -1,8 +1,14 @@
-import { incrementApkDownloadCount } from '../../lib/supabase/landing'
 import { BrandLogo } from '../brand/BrandLogo'
+import { incrementApkDownloadCount } from '../../lib/supabase/landing'
 
-export function SiteHeader({ content }) {
-  const handleDownloadClick = () => {
+export function SiteHeader({ content, onDownloadUnavailable }) {
+  const handleDownloadClick = (event) => {
+    if (!content.downloadsEnabled) {
+      event.preventDefault()
+      onDownloadUnavailable?.()
+      return
+    }
+
     void incrementApkDownloadCount().catch(() => {
       // Keep the direct link working even if tracking fails.
     })
@@ -16,13 +22,18 @@ export function SiteHeader({ content }) {
         </a>
 
         <a
-          href={content.downloadUrl}
-          download={content.downloadFileName}
-          target="_blank"
-          rel="noopener noreferrer"
+          href={content.downloadsEnabled ? content.downloadUrl : undefined}
+          download={content.downloadsEnabled ? content.downloadFileName : undefined}
+          target={content.downloadsEnabled ? '_blank' : undefined}
+          rel={content.downloadsEnabled ? 'noopener noreferrer' : undefined}
           onClick={handleDownloadClick}
+          aria-disabled={!content.downloadsEnabled}
           aria-label="Download the MAJUU Android APK"
-          className="inline-flex min-h-10 items-center justify-center rounded-full border border-emerald-700/12 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:border-emerald-700/18 hover:bg-emerald-50"
+          className={`inline-flex min-h-10 items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition ${
+            content.downloadsEnabled
+              ? 'border-emerald-700/12 bg-white text-emerald-700 hover:-translate-y-0.5 hover:border-emerald-700/18 hover:bg-emerald-50'
+              : 'border-emerald-700/12 bg-white text-emerald-700 hover:-translate-y-0.5 hover:border-emerald-700/18 hover:bg-emerald-50'
+          }`}
         >
           {content.downloadLabel}
         </a>
