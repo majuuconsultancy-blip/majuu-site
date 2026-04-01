@@ -23,8 +23,11 @@ create table if not exists public.admin_users (
 );
 
 insert into public.admin_users (email)
-values ('majuuapp@gmail.com')
+values ('brioneroo@gmail.com')
 on conflict (email) do nothing;
+
+delete from public.admin_users
+where lower(email) = 'majuuapp@gmail.com';
 
 grant select on public.landing_settings to anon, authenticated;
 grant update on public.landing_settings to authenticated;

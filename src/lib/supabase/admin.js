@@ -1,6 +1,9 @@
 import { isSupabaseConfigured, supabase } from './client'
 
 const DOWNLOADS_ENABLED_KEY = 'downloads_enabled'
+const adminRedirectUrl =
+  import.meta.env.VITE_MAJUU_ADMIN_REDIRECT_URL?.trim() ||
+  import.meta.env.VITE_MAJUU_SITE_URL?.trim()
 
 function requireSupabase() {
   if (!isSupabaseConfigured || !supabase) {
@@ -13,10 +16,14 @@ function requireSupabase() {
 export async function signInAdmin(email) {
   const client = requireSupabase()
   const normalizedEmail = email.trim().toLowerCase()
+  const emailRedirectTo = adminRedirectUrl
+    ? new URL('/admin', adminRedirectUrl).toString()
+    : `${window.location.origin}/admin`
+
   const { error } = await client.auth.signInWithOtp({
     email: normalizedEmail,
     options: {
-      emailRedirectTo: `${window.location.origin}/admin`,
+      emailRedirectTo,
     },
   })
 
@@ -91,7 +98,29 @@ export async function getAdminDashboardData() {
     throw settingsResponse.error
   }
 
-  if (waitlistResponse.error) {
+  let waitlist = waitlistResponse.data ?? []
+
+  const missingSourceColumn =
+    waitlistResponse.error &&
+    typeof waitlistResponse.error.message === 'string' &&
+    waitlistResponse.error.message.toLowerCase().includes('source') &&
+    waitlistResponse.error.message.toLowerCase().includes('schema cache')
+
+  if (missingSourceColumn) {
+    const fallbackWaitlistResponse = await client
+      .from('waitlist_signups')
+      .select('id, email, created_at')
+      .order('created_at', { ascending: false })
+
+    if (fallbackWaitlistResponse.error) {
+      throw fallbackWaitlistResponse.error
+    }
+
+    waitlist = (fallbackWaitlistResponse.data ?? []).map((entry) => ({
+      ...entry,
+      source: 'legacy',
+    }))
+  } else if (waitlistResponse.error) {
     throw waitlistResponse.error
   }
 
@@ -102,7 +131,7 @@ export async function getAdminDashboardData() {
   return {
     metrics: metricsResponse.data ?? [],
     settings: settingsResponse.data ?? [],
-    waitlist: waitlistResponse.data ?? [],
+    waitlist,
     feedback: feedbackResponse.data ?? [],
   }
 }

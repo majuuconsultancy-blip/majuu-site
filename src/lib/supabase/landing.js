@@ -80,10 +80,28 @@ export async function getDownloadsEnabled() {
 export async function createWaitlistSignup(email, source = 'updates_section') {
   const client = requireSupabase()
   const normalizedEmail = email.trim().toLowerCase()
-  const { error } = await client.from('waitlist_signups').insert({
+  let error = null
+
+  const insertWithSource = await client.from('waitlist_signups').insert({
     email: normalizedEmail,
     source,
   })
+
+  error = insertWithSource.error
+
+  const missingSourceColumn =
+    error &&
+    typeof error.message === 'string' &&
+    error.message.toLowerCase().includes('source') &&
+    error.message.toLowerCase().includes('schema cache')
+
+  if (missingSourceColumn) {
+    const fallbackInsert = await client.from('waitlist_signups').insert({
+      email: normalizedEmail,
+    })
+
+    error = fallbackInsert.error
+  }
 
   if (error && error.code !== '23505') {
     throw error

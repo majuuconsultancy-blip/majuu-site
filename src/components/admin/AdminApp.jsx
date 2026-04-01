@@ -11,7 +11,7 @@ import {
 import { isSupabaseConfigured } from '../../lib/supabase/client'
 
 const adminEmailDefault =
-  import.meta.env.VITE_MAJUU_ADMIN_EMAIL?.trim() || 'majuuapp@gmail.com'
+  import.meta.env.VITE_MAJUU_ADMIN_EMAIL?.trim() || 'brioneroo@gmail.com'
 
 function formatDate(value) {
   try {
@@ -24,6 +24,62 @@ function formatDate(value) {
   }
 }
 
+function escapeCsvValue(value) {
+  const stringValue = String(value ?? '')
+  return `"${stringValue.replace(/"/g, '""')}"`
+}
+
+function downloadCsv(filename, rows) {
+  if (!rows.length || typeof document === 'undefined') {
+    return
+  }
+
+  const headers = Object.keys(rows[0])
+  const lines = [
+    headers.join(','),
+    ...rows.map((row) => headers.map((header) => escapeCsvValue(row[header])).join(',')),
+  ]
+
+  const blob = new Blob([`\uFEFF${lines.join('\n')}`], {
+    type: 'text/csv;charset=utf-8;',
+  })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
+function buildWaitlistCsvRows(entries) {
+  return entries.map((entry) => ({
+    email: entry.email ?? '',
+    source: entry.source ?? 'legacy',
+    created_at: entry.created_at ?? '',
+  }))
+}
+
+function buildFeedbackCsvRows(entries) {
+  return entries.map((entry) => ({
+    name: entry.name ?? '',
+    email: entry.email ?? '',
+    message: entry.message ?? '',
+    created_at: entry.created_at ?? '',
+  }))
+}
+
+function buildFeedbackContactsCsvRows(entries) {
+  return entries
+    .filter((entry) => entry.email)
+    .map((entry) => ({
+      name: entry.name ?? '',
+      email: entry.email ?? '',
+      created_at: entry.created_at ?? '',
+    }))
+}
+
 function MetricCard({ label, value, hint = '' }) {
   return (
     <article className="surface-panel rounded-[1.7rem] p-5">
@@ -33,6 +89,19 @@ function MetricCard({ label, value, hint = '' }) {
       </p>
       {hint && <p className="mt-2 text-sm leading-6 text-slate-500">{hint}</p>}
     </article>
+  )
+}
+
+function ExportButton({ disabled, onClick, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="inline-flex min-h-10 items-center justify-center rounded-full border border-slate-900/10 bg-white px-4 text-sm font-medium text-slate-800 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {children}
+    </button>
   )
 }
 
@@ -129,23 +198,23 @@ export function AdminApp() {
     }
   }, [session])
 
+  const waitlistEntries = useMemo(() => dashboard?.waitlist ?? [], [dashboard])
+  const feedbackEntries = useMemo(() => dashboard?.feedback ?? [], [dashboard])
+
   const metrics = useMemo(() => {
     const metricMap = new Map(
       (dashboard?.metrics ?? []).map((item) => [item.key, Number(item.value ?? 0)]),
     )
 
-    const waitlist = dashboard?.waitlist ?? []
-    const feedback = dashboard?.feedback ?? []
-
     return {
       siteVisits: metricMap.get('site_visits') ?? 0,
       apkDownloads: metricMap.get('apk_downloads') ?? 0,
-      waitlistTotal: waitlist.length,
-      waitlistModal: waitlist.filter((item) => item.source === 'download_notice').length,
-      updatesForm: waitlist.filter((item) => item.source !== 'download_notice').length,
-      feedbackTotal: feedback.length,
+      waitlistTotal: waitlistEntries.length,
+      waitlistModal: waitlistEntries.filter((item) => item.source === 'download_notice').length,
+      updatesForm: waitlistEntries.filter((item) => item.source !== 'download_notice').length,
+      feedbackTotal: feedbackEntries.length,
     }
-  }, [dashboard])
+  }, [dashboard, feedbackEntries, waitlistEntries])
 
   const downloadsEnabled =
     dashboard?.settings?.find((item) => item.key === 'downloads_enabled')?.enabled ?? false
@@ -212,6 +281,39 @@ export function AdminApp() {
     setMessage({ type: 'idle', text: '' })
   }
 
+  const handleExportAllWaitlist = () => {
+    downloadCsv('majuu-waitlist-all.csv', buildWaitlistCsvRows(waitlistEntries))
+  }
+
+  const handleExportModalWaitlist = () => {
+    downloadCsv(
+      'majuu-waitlist-download-modal.csv',
+      buildWaitlistCsvRows(
+        waitlistEntries.filter((entry) => entry.source === 'download_notice'),
+      ),
+    )
+  }
+
+  const handleExportUpdatesWaitlist = () => {
+    downloadCsv(
+      'majuu-waitlist-updates-form.csv',
+      buildWaitlistCsvRows(
+        waitlistEntries.filter((entry) => entry.source !== 'download_notice'),
+      ),
+    )
+  }
+
+  const handleExportFeedback = () => {
+    downloadCsv('majuu-feedback.csv', buildFeedbackCsvRows(feedbackEntries))
+  }
+
+  const handleExportFeedbackContacts = () => {
+    downloadCsv(
+      'majuu-feedback-contacts.csv',
+      buildFeedbackContactsCsvRows(feedbackEntries),
+    )
+  }
+
   if (authState === 'misconfigured') {
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-3xl items-center px-4 py-12 sm:px-6">
@@ -276,7 +378,7 @@ export function AdminApp() {
   if (accessState === 'loading' || authState === 'loading') {
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-6xl items-center px-4 py-12 sm:px-6">
-        <p className="text-base text-slate-600">Loading admin dashboard…</p>
+        <p className="text-base text-slate-600">Loading admin dashboard...</p>
       </main>
     )
   }
@@ -323,7 +425,7 @@ export function AdminApp() {
             disabled={isRefreshing}
             className="inline-flex min-h-11 items-center justify-center rounded-full border border-slate-900/10 bg-white px-5 text-sm font-semibold text-slate-950 transition hover:bg-slate-50 disabled:cursor-wait disabled:opacity-80"
           >
-            {isRefreshing ? 'Refreshing…' : 'Refresh'}
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
           </button>
           <button
             type="button"
@@ -358,7 +460,7 @@ export function AdminApp() {
         <MetricCard
           label="Waitlist / updates"
           value={new Intl.NumberFormat().format(metrics.waitlistTotal)}
-          hint={`${metrics.waitlistModal} from download modal • ${metrics.updatesForm} from updates form`}
+          hint={`${metrics.waitlistModal} from download modal - ${metrics.updatesForm} from updates form`}
         />
         <MetricCard
           label="Feedback messages"
@@ -387,11 +489,13 @@ export function AdminApp() {
             onClick={handleToggleDownloads}
             disabled={isTogglingDownloads}
             className={`inline-flex min-h-12 items-center justify-center rounded-full px-5 text-sm font-semibold text-white transition disabled:cursor-wait disabled:opacity-80 ${
-              downloadsEnabled ? 'bg-rose-600 hover:bg-rose-700' : 'bg-emerald-700 hover:bg-emerald-800'
+              downloadsEnabled
+                ? 'bg-rose-600 hover:bg-rose-700'
+                : 'bg-emerald-700 hover:bg-emerald-800'
             }`}
           >
             {isTogglingDownloads
-              ? 'Saving…'
+              ? 'Saving...'
               : downloadsEnabled
                 ? 'Disable downloads'
                 : 'Enable downloads'}
@@ -401,19 +505,52 @@ export function AdminApp() {
 
       <section className="mt-6 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <div className="surface-panel rounded-[2rem] p-6">
-          <h2 className="text-2xl font-semibold tracking-[-0.04em] text-slate-950">
-            Waitlist and update signups
-          </h2>
-          <p className="mt-3 text-sm leading-7 text-slate-600">
-            These emails can be used later for launch communication and product
-            updates.
-          </p>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-[-0.04em] text-slate-950">
+                Waitlist and update signups
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-slate-600">
+                Export these lists separately for launch announcements and
+                update follow-ups.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <ExportButton
+                onClick={handleExportAllWaitlist}
+                disabled={waitlistEntries.length === 0}
+              >
+                Export all
+              </ExportButton>
+              <ExportButton
+                onClick={handleExportModalWaitlist}
+                disabled={
+                  !waitlistEntries.some(
+                    (entry) => entry.source === 'download_notice',
+                  )
+                }
+              >
+                Export modal waitlist
+              </ExportButton>
+              <ExportButton
+                onClick={handleExportUpdatesWaitlist}
+                disabled={
+                  !waitlistEntries.some(
+                    (entry) => entry.source !== 'download_notice',
+                  )
+                }
+              >
+                Export updates form
+              </ExportButton>
+            </div>
+          </div>
 
           <div className="mt-6 space-y-3">
-            {(dashboard?.waitlist ?? []).length === 0 ? (
+            {waitlistEntries.length === 0 ? (
               <p className="text-sm text-slate-500">No signups yet.</p>
             ) : (
-              dashboard.waitlist.map((entry) => (
+              waitlistEntries.map((entry) => (
                 <article
                   key={entry.id}
                   className="rounded-[1.25rem] border border-slate-900/8 bg-white/80 p-4"
@@ -424,11 +561,13 @@ export function AdminApp() {
                       <p className="mt-1 text-sm text-slate-500">
                         Source:{' '}
                         <span className="capitalize text-slate-700">
-                          {entry.source?.replace('_', ' ')}
+                          {String(entry.source ?? 'legacy').replace('_', ' ')}
                         </span>
                       </p>
                     </div>
-                    <p className="text-sm text-slate-500">{formatDate(entry.created_at)}</p>
+                    <p className="text-sm text-slate-500">
+                      {formatDate(entry.created_at)}
+                    </p>
                   </div>
                 </article>
               ))
@@ -437,14 +576,38 @@ export function AdminApp() {
         </div>
 
         <div className="surface-panel rounded-[2rem] p-6">
-          <h2 className="text-2xl font-semibold tracking-[-0.04em] text-slate-950">
-            Feedback
-          </h2>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-[-0.04em] text-slate-950">
+                Feedback
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-slate-600">
+                Export full feedback or only the contacts that included an email
+                address.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <ExportButton
+                onClick={handleExportFeedback}
+                disabled={feedbackEntries.length === 0}
+              >
+                Export feedback
+              </ExportButton>
+              <ExportButton
+                onClick={handleExportFeedbackContacts}
+                disabled={!feedbackEntries.some((entry) => entry.email)}
+              >
+                Export feedback contacts
+              </ExportButton>
+            </div>
+          </div>
+
           <div className="mt-6 space-y-3">
-            {(dashboard?.feedback ?? []).length === 0 ? (
+            {feedbackEntries.length === 0 ? (
               <p className="text-sm text-slate-500">No feedback yet.</p>
             ) : (
-              dashboard.feedback.map((entry) => (
+              feedbackEntries.map((entry) => (
                 <article
                   key={entry.id}
                   className="rounded-[1.25rem] border border-slate-900/8 bg-white/80 p-4"
