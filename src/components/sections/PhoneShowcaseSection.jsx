@@ -21,7 +21,15 @@ function AndroidPhoneMockup({ image, alt }) {
       <div className="rounded-[2.7rem] bg-[linear-gradient(180deg,#3b424a_0%,#1b2027_38%,#0f1419_100%)] p-[0.34rem] shadow-[0_28px_56px_rgba(15,23,42,0.16)] ring-1 ring-slate-900/8">
         <div className="rounded-[2.35rem] bg-[linear-gradient(180deg,#101419,#050607)] p-[0.18rem]">
           <div className="relative aspect-[10/21.6] overflow-hidden rounded-[2.04rem] bg-black">
-            <img src={image} alt={alt} loading="lazy" className="h-full w-full object-cover" />
+            <img
+              src={image}
+              alt={alt}
+              loading="lazy"
+              decoding="async"
+              width="800"
+              height="1689"
+              className="h-full w-full object-cover"
+            />
             <div className="pointer-events-none absolute inset-0 rounded-[2rem] ring-1 ring-inset ring-white/10" />
             <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),transparent)]" />
             <div className="absolute left-1/2 top-3.5 h-4 w-4 -translate-x-1/2 rounded-full border border-black/80 bg-[#050607] shadow-[0_0_0_1px_rgba(255,255,255,0.05)]" />

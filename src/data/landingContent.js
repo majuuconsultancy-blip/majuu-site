@@ -52,7 +52,7 @@ export const phoneShowcaseContent = {
       label: 'Home',
       title: 'Everything you need in one place.',
       text: 'Stay informed, track progress, and move with clarity.',
-      image: '/screenshots/home-screen.png',
+      image: '/screenshots/home-screen.webp',
       alt: 'MAJUU home screen showing study, work, and travel abroad options',
     },
     {
@@ -60,7 +60,7 @@ export const phoneShowcaseContent = {
       label: 'PathChoice',
       title: 'Choose to move independently or get guided support.',
       text: 'Keep your momentum with clear choices and verified help when you need it.',
-      image: '/screenshots/path-choice-screen.png',
+      image: '/screenshots/path-choice-screen.webp',
       alt: 'MAJUU support choice screen for independent travel planning or verified support',
     },
     {
@@ -68,7 +68,7 @@ export const phoneShowcaseContent = {
       label: 'Discover',
       title: 'Compare countries, schools, scholarships, and jobs abroad.',
       text: 'See the details that matter before you decide where to go next.',
-      image: '/screenshots/discovery-screen.png',
+      image: '/screenshots/discovery-screen.webp',
       alt: 'MAJUU discovery screen comparing countries, schools, scholarships, and jobs abroad',
     },
   ],
