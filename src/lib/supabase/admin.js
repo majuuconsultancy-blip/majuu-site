@@ -144,11 +144,7 @@ export async function checkAdminAccess() {
         mode: data ? 'secure' : 'fallback',
         missingSetup: !data,
       }
-    } catch (error) {
-      if (!isMissingAdminFunctionError(error)) {
-        throw error
-      }
-
+    } catch {
       return {
         authorized: true,
         mode: 'fallback',

@@ -22,6 +22,24 @@ import {
 } from '../../lib/supabase/admin'
 import { isSupabaseConfigured } from '../../lib/supabase/client'
 
+function mapAdminErrorMessage(error, fallbackMessage) {
+  const rawMessage = String(error?.message ?? '').toLowerCase()
+
+  if (rawMessage.includes('public.is_admin') || rawMessage.includes('is_admin')) {
+    return (
+      'Admin policies are not fully initialized yet. Run the admin SQL migration in Supabase and refresh this page.'
+    )
+  }
+
+  if (rawMessage.includes('schema cache')) {
+    return (
+      'Supabase schema is still catching up after recent changes. Wait a few seconds and refresh the admin page.'
+    )
+  }
+
+  return error?.message || fallbackMessage
+}
+
 function formatDate(value) {
   try {
     return new Intl.DateTimeFormat('en-KE', {
@@ -258,7 +276,7 @@ export function AdminApp() {
           setAccessState('error')
           setMessage({
             type: 'error',
-            text: error.message || 'We could not load admin data.',
+            text: mapAdminErrorMessage(error, 'We could not load admin data.'),
           })
         }
       }
@@ -335,7 +353,10 @@ export function AdminApp() {
     } catch (error) {
       setMessage({
         type: 'error',
-        text: error.message || 'We could not send the admin login link.',
+        text: mapAdminErrorMessage(
+          error,
+          'We could not send the admin login link.',
+        ),
       })
     }
   }
@@ -349,7 +370,7 @@ export function AdminApp() {
     } catch (error) {
       setMessage({
         type: 'error',
-        text: error.message || 'We could not refresh admin data.',
+        text: mapAdminErrorMessage(error, 'We could not refresh admin data.'),
       })
     } finally {
       setIsRefreshing(false)
@@ -372,7 +393,10 @@ export function AdminApp() {
     } catch (error) {
       setMessage({
         type: 'error',
-        text: error.message || 'We could not update the download toggle.',
+        text: mapAdminErrorMessage(
+          error,
+          'We could not update the download toggle.',
+        ),
       })
     } finally {
       setIsTogglingDownloads(false)
