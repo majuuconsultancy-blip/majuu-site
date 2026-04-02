@@ -24,18 +24,22 @@ function isMissingAdminFunctionError(error) {
 }
 
 function isMissingSourceColumnError(error) {
+  const message = String(error?.message ?? '').toLowerCase()
+
   return (
-    typeof error?.message === 'string' &&
-    error.message.toLowerCase().includes('source') &&
-    error.message.toLowerCase().includes('schema cache')
+    (message.includes('source') && message.includes('schema cache')) ||
+    message.includes('column waitlist_signups.source does not exist') ||
+    String(error?.code ?? '') === '42703'
   )
 }
 
 function isMissingRelationError(error) {
+  const message = String(error?.message ?? '').toLowerCase()
+
   return (
-    typeof error?.message === 'string' &&
-    error.message.toLowerCase().includes('relation') &&
-    error.message.toLowerCase().includes('does not exist')
+    (message.includes('relation') && message.includes('does not exist')) ||
+    message.includes('could not find the table') ||
+    String(error?.code ?? '') === 'PGRST205'
   )
 }
 

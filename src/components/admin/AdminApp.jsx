@@ -1,6 +1,7 @@
 import { createElement, useEffect, useMemo, useState } from 'react'
 import {
   Activity,
+  ArrowRight,
   Download,
   LogOut,
   MessageSquare,
@@ -111,7 +112,7 @@ function buildFeedbackContactsCsvRows(entries) {
     }))
 }
 
-function StatusChip({ icon, tone = 'neutral', children }) {
+function StatusChip({ icon: Icon, tone = 'neutral', children }) {
   const toneClassName =
     tone === 'emerald'
       ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
@@ -123,34 +124,157 @@ function StatusChip({ icon, tone = 'neutral', children }) {
     <div
       className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${toneClassName}`}
     >
-      {createElement(icon, { className: 'h-3.5 w-3.5' })}
+      {createElement(Icon, { className: 'h-3.5 w-3.5' })}
       <span>{children}</span>
     </div>
   )
 }
 
-function OverviewMetric({ icon, label, value, hint, tone = 'neutral' }) {
-  const accentClassName =
-    tone === 'emerald'
-      ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100'
-      : tone === 'rose'
-        ? 'bg-rose-50 text-rose-700 ring-1 ring-rose-100'
-        : 'bg-slate-100 text-slate-700 ring-1 ring-slate-200'
+function GraphBars({ items }) {
+  const maxValue = Math.max(...items.map((item) => item.value), 1)
 
   return (
-    <article className="rounded-[1.6rem] border border-white/75 bg-white/92 p-5 shadow-[0_16px_36px_rgba(15,23,42,0.06)]">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm font-medium text-slate-500">{label}</p>
-          <p className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-slate-950 sm:text-[2rem]">
-            {value}
+    <div className="space-y-4">
+      {items.map((item) => (
+        <div key={item.key}>
+          <div className="mb-1 flex items-center justify-between text-xs text-slate-500">
+            <span>{item.label}</span>
+            <span className="font-medium text-slate-700">{formatNumber(item.value)}</span>
+          </div>
+          <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+            <div
+              className={`h-full rounded-full ${item.barClass}`}
+              style={{ width: `${Math.max(8, (item.value / maxValue) * 100)}%` }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ConversionRing({ visitors, downloads }) {
+  const ratio = visitors > 0 ? (downloads / visitors) * 100 : 0
+  const clampedRatio = Math.max(0, Math.min(100, ratio))
+  const radius = 46
+  const circumference = 2 * Math.PI * radius
+  const dashOffset = circumference - (clampedRatio / 100) * circumference
+
+  return (
+    <div className="flex flex-col items-center gap-3 py-1">
+      <div className="relative h-30 w-30">
+        <svg viewBox="0 0 120 120" className="h-30 w-30 -rotate-90">
+          <circle
+            cx="60"
+            cy="60"
+            r={radius}
+            fill="none"
+            stroke="rgba(15,23,42,0.08)"
+            strokeWidth="10"
+          />
+          <circle
+            cx="60"
+            cy="60"
+            r={radius}
+            fill="none"
+            stroke="url(#conversionGradient)"
+            strokeWidth="10"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={dashOffset}
+          />
+          <defs>
+            <linearGradient id="conversionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#10b981" />
+              <stop offset="100%" stopColor="#0d8f61" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <p className="text-[10px] uppercase tracking-[0.14em] text-slate-400">Conversion</p>
+          <p className="mt-1 text-xl font-semibold tracking-[-0.04em] text-slate-950">
+            {clampedRatio.toFixed(1)}%
           </p>
         </div>
-        <div className={`rounded-2xl p-3 ${accentClassName}`}>
-          {createElement(icon, { className: 'h-5 w-5' })}
+      </div>
+      <p className="text-center text-xs leading-5 text-slate-500">
+        Downloads compared to total site visitors.
+      </p>
+    </div>
+  )
+}
+
+function KpiNavigationCard({ title, value, active, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full rounded-2xl border px-4 py-4 text-left transition ${
+        active
+          ? 'border-emerald-300 bg-emerald-50/80 shadow-[0_10px_26px_rgba(13,143,97,0.12)]'
+          : 'border-slate-200 bg-white hover:border-emerald-200 hover:shadow-[0_8px_20px_rgba(15,23,42,0.07)]'
+      }`}
+    >
+      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+        {title}
+      </p>
+      <div className="mt-2 flex items-center justify-between">
+        <p className="text-2xl font-semibold tracking-[-0.04em] text-slate-950">
+          {formatNumber(value)}
+        </p>
+        <ArrowRight className="h-4 w-4 text-slate-400" />
+      </div>
+    </button>
+  )
+}
+
+function MetricsHeader({ metrics }) {
+  return (
+    <section className="rounded-2xl border border-slate-200 bg-white px-4 py-4 sm:px-5">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+        Metrics header
+      </p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <p className="text-xs text-slate-500">Visitors</p>
+          <p className="text-lg font-semibold tracking-[-0.03em] text-slate-950">
+            {formatNumber(metrics.siteVisits)}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-500">Downloads</p>
+          <p className="text-lg font-semibold tracking-[-0.03em] text-slate-950">
+            {formatNumber(metrics.apkDownloads)}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-500">Waitlist + updates</p>
+          <p className="text-lg font-semibold tracking-[-0.03em] text-slate-950">
+            {formatNumber(metrics.waitlistTotal)}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-500">Feedback</p>
+          <p className="text-lg font-semibold tracking-[-0.03em] text-slate-950">
+            {formatNumber(metrics.feedbackTotal)}
+          </p>
         </div>
       </div>
-      {hint && <p className="mt-3 text-sm leading-6 text-slate-500">{hint}</p>}
+    </section>
+  )
+}
+
+function EntryRow({ title, subtitle, date, body }) {
+  return (
+    <article className="border-b border-slate-100 py-4 last:border-b-0">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-sm font-medium text-slate-900">{title}</p>
+          {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
+        </div>
+        <p className="text-xs text-slate-500">{date}</p>
+      </div>
+      {body && <p className="mt-3 text-sm leading-6 text-slate-700">{body}</p>}
     </article>
   )
 }
@@ -168,29 +292,6 @@ function ExportButton({ disabled, onClick, children }) {
   )
 }
 
-function SectionCard({ title, description, actions, children }) {
-  return (
-    <section className="surface-panel rounded-[2rem] p-6 sm:p-7">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-[-0.04em] text-slate-950">
-            {title}
-          </h2>
-          {description && (
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
-              {description}
-            </p>
-          )}
-        </div>
-
-        {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
-      </div>
-
-      <div className="mt-6">{children}</div>
-    </section>
-  )
-}
-
 export function AdminApp() {
   const [email, setEmail] = useState('')
   const [session, setSession] = useState(null)
@@ -202,6 +303,7 @@ export function AdminApp() {
   const [isTogglingDownloads, setIsTogglingDownloads] = useState(false)
   const [adminMode, setAdminMode] = useState('secure')
   const [setupRequired, setSetupRequired] = useState(false)
+  const [activeScreen, setActiveScreen] = useState('overview')
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -292,6 +394,12 @@ export function AdminApp() {
   const waitlistEntries = useMemo(() => dashboard?.waitlist ?? [], [dashboard])
   const feedbackEntries = useMemo(() => dashboard?.feedback ?? [], [dashboard])
   const dashboardIssues = useMemo(() => dashboard?.issues ?? [], [dashboard])
+  const segmentedData = useMemo(() => {
+    const waitlist = waitlistEntries.filter((item) => item.source === 'download_notice')
+    const updates = waitlistEntries.filter((item) => item.source !== 'download_notice')
+
+    return { waitlist, updates }
+  }, [waitlistEntries])
 
   const metrics = useMemo(() => {
     const metricMap = new Map(
@@ -310,12 +418,44 @@ export function AdminApp() {
       siteVisits: metricMap.get('site_visits') ?? 0,
       apkDownloads: metricMap.get('apk_downloads') ?? 0,
       waitlistTotal: waitlistEntries.length,
+      waitlistOnly: segmentedData.waitlist.length,
+      updatesOnly: segmentedData.updates.length,
       modalWaitlistCount,
       updatesWaitlistCount,
       feedbackTotal: feedbackEntries.length,
       feedbackWithEmail,
     }
-  }, [dashboard, feedbackEntries, waitlistEntries])
+  }, [dashboard, feedbackEntries, segmentedData, waitlistEntries])
+
+  const graphItems = useMemo(
+    () => [
+      {
+        key: 'visitors',
+        label: 'Visitors',
+        value: metrics.siteVisits,
+        barClass: 'bg-gradient-to-r from-emerald-600 to-emerald-500',
+      },
+      {
+        key: 'downloads',
+        label: 'APK downloads',
+        value: metrics.apkDownloads,
+        barClass: 'bg-gradient-to-r from-slate-700 to-slate-500',
+      },
+      {
+        key: 'waitlist',
+        label: 'Waitlist + updates',
+        value: metrics.waitlistTotal,
+        barClass: 'bg-gradient-to-r from-emerald-300 to-emerald-400',
+      },
+      {
+        key: 'feedback',
+        label: 'Feedback',
+        value: metrics.feedbackTotal,
+        barClass: 'bg-gradient-to-r from-slate-400 to-slate-300',
+      },
+    ],
+    [metrics],
+  )
 
   const latestActivityLabel = useMemo(() => {
     const timestamps = [
@@ -415,20 +555,14 @@ export function AdminApp() {
   const handleExportModalWaitlist = () => {
     downloadCsv(
       'majuu-waitlist-download-modal.csv',
-      buildWaitlistCsvRows(
-        waitlistEntries.filter((entry) => entry.source === 'download_notice'),
-      ),
+      buildWaitlistCsvRows(segmentedData.waitlist),
     )
   }
 
   const handleExportUpdatesWaitlist = () => {
     downloadCsv(
       'majuu-waitlist-updates-form.csv',
-      buildWaitlistCsvRows(
-        waitlistEntries.filter(
-          (entry) => entry.source === 'updates_section' || entry.source === 'legacy',
-        ),
-      ),
+      buildWaitlistCsvRows(segmentedData.updates),
     )
   }
 
@@ -570,10 +704,10 @@ export function AdminApp() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
-      <section className="rounded-[2.4rem] border border-slate-900/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(245,249,246,0.94))] p-6 shadow-[0_26px_90px_rgba(15,23,42,0.08)] sm:p-8">
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
-          <div className="max-w-3xl">
+    <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+      <section className="rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(243,248,245,0.95))] px-5 py-5 shadow-[0_22px_70px_rgba(15,23,42,0.08)] sm:px-6 sm:py-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
             <div className="flex flex-wrap gap-2">
               <StatusChip icon={Activity} tone="emerald">
                 Live metrics
@@ -582,30 +716,21 @@ export function AdminApp() {
                 icon={adminMode === 'secure' ? ShieldCheck : TriangleAlert}
                 tone={adminMode === 'secure' ? 'emerald' : 'amber'}
               >
-                {adminMode === 'secure'
-                  ? 'Secure admin access'
-                  : 'Fallback admin access'}
+                {adminMode === 'secure' ? 'Secure mode' : 'Fallback mode'}
               </StatusChip>
             </div>
-            <h1 className="mt-5 text-3xl font-semibold tracking-[-0.05em] text-slate-950 sm:text-5xl">
-              Metrics dashboard
+            <h1 className="mt-4 text-2xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-3xl">
+              MAJUU Admin Dashboard
             </h1>
-            <p className="mt-4 max-w-2xl text-base leading-8 text-slate-700">
-              A read-only pulse of MAJUU traffic, downloads, signups, and feedback,
-              with lightweight controls for launch readiness.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-4 text-sm text-slate-500">
-              <span>Last activity: {latestActivityLabel}</span>
-              <span>Session active</span>
-            </div>
+            <p className="mt-2 text-sm text-slate-600">Last activity: {latestActivityLabel}</p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-slate-900/10 bg-white px-5 text-sm font-semibold text-slate-950 transition hover:bg-slate-50 disabled:cursor-wait disabled:opacity-80"
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700 disabled:cursor-wait disabled:opacity-80"
             >
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               {isRefreshing ? 'Refreshing...' : 'Refresh'}
@@ -613,7 +738,7 @@ export function AdminApp() {
             <button
               type="button"
               onClick={handleSignOut}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-slate-900/10 bg-white px-5 text-sm font-semibold text-slate-950 transition hover:bg-slate-50"
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700"
             >
               <LogOut className="h-4 w-4" />
               Sign out
@@ -621,104 +746,57 @@ export function AdminApp() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <OverviewMetric
-            icon={Users}
-            label="Visitors"
-            value={formatNumber(metrics.siteVisits)}
-            hint="Approximate unique browsers counted from the landing page."
-          />
-          <OverviewMetric
-            icon={Download}
-            label="APK downloads"
-            value={formatNumber(metrics.apkDownloads)}
-            hint={
-              metrics.siteVisits > 0
-                ? `${Math.round((metrics.apkDownloads / metrics.siteVisits) * 100)}% of recorded visits`
-                : 'Waiting for the first tracked download'
-            }
-            tone="emerald"
-          />
-          <OverviewMetric
-            icon={Activity}
-            label="Waitlist and updates"
-            value={formatNumber(metrics.waitlistTotal)}
-            hint={`${formatNumber(metrics.modalWaitlistCount)} from the download modal / ${formatNumber(metrics.updatesWaitlistCount)} from the updates form`}
-            tone="emerald"
-          />
-          <OverviewMetric
-            icon={MessageSquare}
-            label="Feedback"
-            value={formatNumber(metrics.feedbackTotal)}
-            hint={`${formatNumber(metrics.feedbackWithEmail)} feedback entries include an email address`}
-          />
+        <div className="mt-5 grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+          <section className="rounded-2xl border border-slate-200 bg-white px-4 py-4 sm:px-5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+              Website activity graph
+            </p>
+            <div className="mt-4">
+              <GraphBars items={graphItems} />
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-200 bg-white px-4 py-4 sm:px-5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+              Visitor to download ring
+            </p>
+            <ConversionRing visitors={metrics.siteVisits} downloads={metrics.apkDownloads} />
+          </section>
         </div>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-[1.6rem] border border-emerald-100 bg-emerald-50/70 p-5">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-800">
-              Funnel snapshot
-            </p>
-            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-700">
-              <span className="rounded-full bg-white/90 px-3 py-1.5 shadow-sm">
-                {formatNumber(metrics.siteVisits)} visitors
-              </span>
-              <span className="text-slate-300">/</span>
-              <span className="rounded-full bg-white/90 px-3 py-1.5 shadow-sm">
-                {formatNumber(metrics.apkDownloads)} downloads
-              </span>
-              <span className="text-slate-300">/</span>
-              <span className="rounded-full bg-white/90 px-3 py-1.5 shadow-sm">
-                {formatNumber(metrics.waitlistTotal)} signups
-              </span>
-              <span className="text-slate-300">/</span>
-              <span className="rounded-full bg-white/90 px-3 py-1.5 shadow-sm">
-                {formatNumber(metrics.feedbackTotal)} feedback
-              </span>
-            </div>
-          </div>
-
-          <div className="rounded-[1.6rem] border border-slate-900/8 bg-white/86 p-5">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
-              Download status
-            </p>
-            <div className="mt-4 flex items-center justify-between gap-4">
-              <div>
-                <p className="text-lg font-semibold tracking-[-0.04em] text-slate-950">
-                  {downloadsEnabled ? 'Downloads are live' : 'Downloads are gated'}
-                </p>
-                <p className="mt-2 text-sm leading-6 text-slate-500">
-                  {downloadsEnabled
-                    ? 'Visitors can download the APK directly from the landing page.'
-                    : 'Visitors see the tester notice modal and can join the waitlist.'}
-                </p>
-              </div>
-              <div
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                  downloadsEnabled
-                    ? 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-100'
-                    : 'bg-amber-50 text-amber-900 ring-1 ring-amber-100'
-                }`}
-              >
-                {downloadsEnabled ? 'Live' : 'Paused'}
-              </div>
-            </div>
-          </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <KpiNavigationCard
+            title="Waitlist"
+            value={metrics.waitlistOnly}
+            active={activeScreen === 'waitlist'}
+            onClick={() => setActiveScreen('waitlist')}
+          />
+          <KpiNavigationCard
+            title="Get updates"
+            value={metrics.updatesOnly}
+            active={activeScreen === 'updates'}
+            onClick={() => setActiveScreen('updates')}
+          />
+          <KpiNavigationCard
+            title="Feedback"
+            value={metrics.feedbackTotal}
+            active={activeScreen === 'feedback'}
+            onClick={() => setActiveScreen('feedback')}
+          />
         </div>
 
         {(setupRequired || dashboardIssues.length > 0) && (
-          <div className="mt-6 rounded-[1.6rem] border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-950">
-            <div className="flex items-start gap-3">
+          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <div className="flex items-start gap-2">
               <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
               <div>
-                <p className="font-semibold">Admin setup is not fully complete yet.</p>
-                <p className="mt-2 leading-7">
-                  The dashboard is running in a safe fallback mode. Run the Supabase
-                  admin migration, then refresh this page to unlock secure table access
-                  and the download toggle.
+                <p className="font-semibold">Admin setup is partially incomplete.</p>
+                <p className="mt-1 leading-6">
+                  Apply [admin_dashboard.sql](C:/Users/KoinangeJr/majuu-site/supabase/admin_dashboard.sql)
+                  in Supabase SQL Editor, then refresh.
                 </p>
                 {dashboardIssues.length > 0 && (
-                  <ul className="mt-3 space-y-2">
+                  <ul className="mt-2 space-y-1">
                     {dashboardIssues.map((issue) => (
                       <li key={issue}>{issue}</li>
                     ))}
@@ -731,7 +809,7 @@ export function AdminApp() {
 
         {message.text && (
           <p
-            className={`mt-5 text-sm ${
+            className={`mt-4 text-sm ${
               message.type === 'error' ? 'text-rose-600' : 'text-emerald-700'
             }`}
           >
@@ -740,16 +818,16 @@ export function AdminApp() {
         )}
       </section>
 
-      <section className="mt-6 surface-panel rounded-[2rem] p-6 sm:p-7">
+      <section className="mt-5 rounded-[1.8rem] border border-slate-200 bg-white px-5 py-5 sm:px-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
-              Launch control
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+              Launch controls
             </p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
-              APK CTA toggle
+            <h2 className="mt-2 text-xl font-semibold tracking-[-0.03em] text-slate-950">
+              Download CTA status
             </h2>
-            <p className="mt-3 text-base leading-8 text-slate-700">
+            <p className="mt-2 text-sm text-slate-600">
               Downloads are currently{' '}
               <span className="font-semibold text-emerald-700">
                 {downloadsEnabled ? 'enabled' : 'disabled'}
@@ -762,7 +840,7 @@ export function AdminApp() {
             type="button"
             onClick={handleToggleDownloads}
             disabled={!canToggleDownloads || isTogglingDownloads}
-            className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50 ${
+            className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-45 ${
               downloadsEnabled
                 ? 'bg-rose-600 hover:bg-rose-700'
                 : 'bg-emerald-700 hover:bg-emerald-800'
@@ -778,117 +856,171 @@ export function AdminApp() {
         </div>
       </section>
 
-      <section className="mt-6 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-        <SectionCard
-          title="Waitlist and update signups"
-          description="Export these lists separately for launch announcements and update follow-ups."
-          actions={
-            <>
-              <ExportButton
-                onClick={handleExportAllWaitlist}
-                disabled={waitlistEntries.length === 0}
-              >
-                Export all
-              </ExportButton>
-              <ExportButton
-                onClick={handleExportModalWaitlist}
-                disabled={
-                  !waitlistEntries.some((entry) => entry.source === 'download_notice')
-                }
-              >
-                Export modal waitlist
-              </ExportButton>
-              <ExportButton
-                onClick={handleExportUpdatesWaitlist}
-                disabled={
-                  !waitlistEntries.some(
-                    (entry) =>
-                      entry.source === 'updates_section' || entry.source === 'legacy',
-                  )
-                }
-              >
-                Export updates form
-              </ExportButton>
-            </>
-          }
-        >
-          <div className="space-y-3">
-            {waitlistEntries.length === 0 ? (
-              <p className="text-sm text-slate-500">No signups yet.</p>
-            ) : (
-              waitlistEntries.map((entry) => (
-                <article
-                  key={entry.id}
-                  className="rounded-[1.25rem] border border-slate-900/8 bg-white/84 p-4"
-                >
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <p className="font-medium text-slate-900">{entry.email}</p>
-                      <p className="mt-1 text-sm text-slate-500">
-                        Source:{' '}
-                        <span className="capitalize text-slate-700">
-                          {String(entry.source ?? 'legacy').replaceAll('_', ' ')}
-                        </span>
-                      </p>
-                    </div>
-                    <p className="text-sm text-slate-500">
-                      {formatDate(entry.created_at)}
-                    </p>
-                  </div>
-                </article>
-              ))
-            )}
-          </div>
-        </SectionCard>
+      <section className="mt-5 space-y-4">
+        <MetricsHeader metrics={metrics} />
 
-        <SectionCard
-          title="Feedback"
-          description="Export full feedback or only the contacts that included an email address."
-          actions={
-            <>
-              <ExportButton
-                onClick={handleExportFeedback}
-                disabled={feedbackEntries.length === 0}
-              >
-                Export feedback
-              </ExportButton>
-              <ExportButton
-                onClick={handleExportFeedbackContacts}
-                disabled={!feedbackEntries.some((entry) => entry.email)}
-              >
-                Export feedback contacts
-              </ExportButton>
-            </>
-          }
-        >
-          <div className="space-y-3">
-            {feedbackEntries.length === 0 ? (
-              <p className="text-sm text-slate-500">No feedback yet.</p>
-            ) : (
-              feedbackEntries.map((entry) => (
-                <article
-                  key={entry.id}
-                  className="rounded-[1.25rem] border border-slate-900/8 bg-white/84 p-4"
+        {activeScreen === 'overview' && (
+          <section className="rounded-[1.8rem] border border-slate-200 bg-white px-5 py-5 sm:px-6">
+            <h3 className="text-xl font-semibold tracking-[-0.03em] text-slate-950">Overview</h3>
+            <p className="mt-2 text-sm text-slate-600">
+              Use the cards above to open Waitlist, Get Updates, or Feedback detail
+              screens.
+            </p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+              <KpiNavigationCard
+                title="Waitlist"
+                value={metrics.waitlistOnly}
+                active={activeScreen === 'waitlist'}
+                onClick={() => setActiveScreen('waitlist')}
+              />
+              <KpiNavigationCard
+                title="Get updates"
+                value={metrics.updatesOnly}
+                active={activeScreen === 'updates'}
+                onClick={() => setActiveScreen('updates')}
+              />
+              <KpiNavigationCard
+                title="Feedback"
+                value={metrics.feedbackTotal}
+                active={activeScreen === 'feedback'}
+                onClick={() => setActiveScreen('feedback')}
+              />
+            </div>
+          </section>
+        )}
+
+        {activeScreen === 'waitlist' && (
+          <section className="rounded-[1.8rem] border border-slate-200 bg-white px-5 py-5 sm:px-6">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h3 className="text-xl font-semibold tracking-[-0.03em] text-slate-950">
+                  Waitlist details
+                </h3>
+                <p className="mt-1 text-sm text-slate-600">
+                  People who joined from the download modal tester flow.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <ExportButton
+                  onClick={handleExportModalWaitlist}
+                  disabled={segmentedData.waitlist.length === 0}
                 >
-                  <div className="flex flex-col gap-1">
-                    <p className="font-medium text-slate-900">
-                      {entry.name || 'Anonymous'}
-                    </p>
-                    {entry.email && (
-                      <p className="text-sm text-slate-500">{entry.email}</p>
-                    )}
-                    <p className="mt-3 text-sm leading-7 text-slate-700">
-                      {entry.message}
-                    </p>
-                    <p className="mt-3 text-sm text-slate-500">
-                      {formatDate(entry.created_at)}
-                    </p>
-                  </div>
-                </article>
-              ))
-            )}
-          </div>
-        </SectionCard>
+                  Export waitlist CSV
+                </ExportButton>
+                <ExportButton
+                  onClick={handleExportAllWaitlist}
+                  disabled={waitlistEntries.length === 0}
+                >
+                  Export all signups CSV
+                </ExportButton>
+              </div>
+            </div>
+
+            <div className="mt-4 divide-y divide-slate-100">
+              {segmentedData.waitlist.length === 0 ? (
+                <p className="py-4 text-sm text-slate-500">No waitlist entries yet.</p>
+              ) : (
+                segmentedData.waitlist.map((entry) => (
+                  <EntryRow
+                    key={entry.id}
+                    title={entry.email}
+                    subtitle="Source: download notice"
+                    date={formatDate(entry.created_at)}
+                  />
+                ))
+              )}
+            </div>
+          </section>
+        )}
+
+        {activeScreen === 'updates' && (
+          <section className="rounded-[1.8rem] border border-slate-200 bg-white px-5 py-5 sm:px-6">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h3 className="text-xl font-semibold tracking-[-0.03em] text-slate-950">
+                  Get updates details
+                </h3>
+                <p className="mt-1 text-sm text-slate-600">
+                  Signups from the updates form and legacy entries.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <ExportButton
+                  onClick={handleExportUpdatesWaitlist}
+                  disabled={segmentedData.updates.length === 0}
+                >
+                  Export updates CSV
+                </ExportButton>
+                <ExportButton
+                  onClick={handleExportAllWaitlist}
+                  disabled={waitlistEntries.length === 0}
+                >
+                  Export all signups CSV
+                </ExportButton>
+              </div>
+            </div>
+
+            <div className="mt-4 divide-y divide-slate-100">
+              {segmentedData.updates.length === 0 ? (
+                <p className="py-4 text-sm text-slate-500">No update signups yet.</p>
+              ) : (
+                segmentedData.updates.map((entry) => (
+                  <EntryRow
+                    key={entry.id}
+                    title={entry.email}
+                    subtitle={`Source: ${String(entry.source ?? 'legacy').replaceAll('_', ' ')}`}
+                    date={formatDate(entry.created_at)}
+                  />
+                ))
+              )}
+            </div>
+          </section>
+        )}
+
+        {activeScreen === 'feedback' && (
+          <section className="rounded-[1.8rem] border border-slate-200 bg-white px-5 py-5 sm:px-6">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h3 className="text-xl font-semibold tracking-[-0.03em] text-slate-950">
+                  Feedback details
+                </h3>
+                <p className="mt-1 text-sm text-slate-600">
+                  Messages from users with optional contact emails.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <ExportButton
+                  onClick={handleExportFeedback}
+                  disabled={feedbackEntries.length === 0}
+                >
+                  Export feedback CSV
+                </ExportButton>
+                <ExportButton
+                  onClick={handleExportFeedbackContacts}
+                  disabled={metrics.feedbackWithEmail === 0}
+                >
+                  Export feedback contacts CSV
+                </ExportButton>
+              </div>
+            </div>
+
+            <div className="mt-4 divide-y divide-slate-100">
+              {feedbackEntries.length === 0 ? (
+                <p className="py-4 text-sm text-slate-500">No feedback entries yet.</p>
+              ) : (
+                feedbackEntries.map((entry) => (
+                  <EntryRow
+                    key={entry.id}
+                    title={entry.name || 'Anonymous'}
+                    subtitle={entry.email || 'No email provided'}
+                    date={formatDate(entry.created_at)}
+                    body={entry.message}
+                  />
+                ))
+              )}
+            </div>
+          </section>
+        )}
       </section>
     </main>
   )
