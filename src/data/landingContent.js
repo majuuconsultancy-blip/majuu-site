@@ -40,8 +40,8 @@ export const heroContent = {
 export const whatIsMajuuContent = {
   title: 'What is MAJUU?',
   paragraphs: [
-    'MAJUU is a platform that helps people in Kenya explore study, work, and travel abroad opportunities with more clarity, control, and confidence.',
-    'Discover countries, compare options, find scholarships, schools, and jobs, move independently, or choose support from a list of verified partners.',
+    'MAJUU is a digital platform that makes it easier, safer, and more accessible for people in Kenya to apply for study, work, and travel opportunities abroad.',
+    'Discover countries, compare pathways, explore scholarships, schools, jobs etc., then choose whether to apply independently or get support from verified Agents - all in one place.',
   ],
 }
 
@@ -59,7 +59,7 @@ export const phoneShowcaseContent = {
     {
       id: 'path-choice',
       label: 'PathChoice',
-      title: 'Choose to move independently or get guided support.',
+      title: 'Self Help - We Help.',
       text: 'Keep your momentum with clear choices and verified help when you need it.',
       image: '/screenshots/path-choice-screen.webp',
       alt: 'MAJUU support choice screen for independent travel planning or verified support',
@@ -129,6 +129,14 @@ export const downloadSectionContent = {
   counterLabel: 'early downloads',
   downloadUrl: apkDownloadUrl,
   downloadFileName: apkDownloadFileName,
+}
+
+export const launchCountdownContent = {
+  launchDateIso: '2026-05-10T00:00:00+03:00',
+  timeZone: 'Africa/Nairobi',
+  countdownLabel: 'Launches May 10, 2026',
+  waitlistPrompt: 'Join the waitlist for a chance to win exclusive launch prizes.',
+  waitlistHref: '#community',
 }
 
 export const downloadNoticeContent = {

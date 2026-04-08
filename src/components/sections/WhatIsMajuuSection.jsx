@@ -1,8 +1,12 @@
 import { SectionWrapper } from '../layout/SectionWrapper'
 
 export function WhatIsMajuuSection({ content }) {
-  const verifiedPhrase = 'verified partners'
-  const [beforeVerified, afterVerified] = content.paragraphs[1].split(verifiedPhrase)
+  const verifiedPhrase = 'verified Agents'
+  const secondParagraph = content.paragraphs[1]
+  const hasVerifiedPhrase = secondParagraph.includes(verifiedPhrase)
+  const [beforeVerified, afterVerified] = hasVerifiedPhrase
+    ? secondParagraph.split(verifiedPhrase)
+    : [secondParagraph, '']
   const [beforeMajuu, afterMajuu] = content.paragraphs[0].split('MAJUU')
 
   return (
@@ -21,12 +25,18 @@ export function WhatIsMajuuSection({ content }) {
           {afterMajuu}
         </p>
         <p>
-          {beforeVerified}
-          <span className="accent-script text-[1.08em] font-semibold text-emerald-700">
-            verified
-          </span>{' '}
-          partners
-          {afterVerified}
+          {hasVerifiedPhrase ? (
+            <>
+              {beforeVerified}
+              <span className="accent-script text-[1.08em] font-semibold text-emerald-700">
+                verified
+              </span>{' '}
+              Agents
+              {afterVerified}
+            </>
+          ) : (
+            secondParagraph
+          )}
         </p>
       </div>
     </SectionWrapper>

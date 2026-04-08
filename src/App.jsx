@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   communityContent,
   contactContent,
+  launchCountdownContent,
   downloadNoticeContent,
   downloadSectionContent,
   footerContent,
@@ -107,6 +108,7 @@ function App() {
     <div className="min-h-screen bg-transparent text-slate-950">
       <SiteHeader
         content={resolvedHeaderContent}
+        launchContent={launchCountdownContent}
         onDownloadUnavailable={() => setIsDownloadNoticeOpen(true)}
       />
 
