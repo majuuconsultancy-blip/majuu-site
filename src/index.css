@@ -181,7 +181,7 @@ textarea {
   background:
     radial-gradient(circle at 12% -30%, rgba(110, 231, 183, 0.34), transparent 52%),
     linear-gradient(132deg, rgba(12, 111, 75, 0.95), rgba(15, 23, 42, 0.92));
-  box-shadow: 0 16px 44px rgba(10, 22, 32, 0.28);
+  box-shadow: 0 10px 26px rgba(10, 22, 32, 0.2);
 }
 
 .header-countdown-unit {
@@ -197,14 +197,14 @@ textarea {
 .header-waitlist-cta {
   border-color: rgba(255, 255, 255, 0.34);
   background: linear-gradient(180deg, rgba(12, 111, 75, 0.88), rgba(5, 33, 24, 0.84));
-  box-shadow: 0 12px 30px rgba(6, 13, 20, 0.34);
+  box-shadow: 0 8px 18px rgba(6, 13, 20, 0.26);
   backdrop-filter: blur(2px);
-  animation: header-waitlist-glow 2.5s ease-in-out infinite;
+  animation: header-waitlist-glow 3s ease-in-out infinite;
 }
 
 .header-waitlist-cta:hover {
   background: linear-gradient(180deg, rgba(13, 130, 87, 0.92), rgba(6, 44, 31, 0.9));
-  box-shadow: 0 16px 34px rgba(6, 13, 20, 0.38);
+  box-shadow: 0 10px 22px rgba(6, 13, 20, 0.3);
 }
 
 .surface-panel {
@@ -258,11 +258,11 @@ textarea {
 @keyframes header-waitlist-glow {
   0%,
   100% {
-    box-shadow: 0 12px 30px rgba(6, 13, 20, 0.34);
+    box-shadow: 0 8px 18px rgba(6, 13, 20, 0.26);
   }
 
   50% {
-    box-shadow: 0 16px 36px rgba(6, 13, 20, 0.42);
+    box-shadow: 0 11px 24px rgba(6, 13, 20, 0.32);
   }
 }
 

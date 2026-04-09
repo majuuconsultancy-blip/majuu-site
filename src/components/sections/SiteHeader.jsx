@@ -113,11 +113,15 @@ export function SiteHeader({ content, launchContent, onDownloadUnavailable }) {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/60 bg-[rgba(250,249,244,0.68)] shadow-[0_10px_35px_rgba(15,23,42,0.04)] backdrop-blur-2xl">
-      <div className="mx-auto w-full max-w-6xl px-4 py-2 sm:px-6 sm:py-2.5">
+    <header className="sticky top-0 z-50 border-b border-white/60 bg-[rgba(250,249,244,0.68)] shadow-[0_8px_24px_rgba(15,23,42,0.035)] backdrop-blur-2xl">
+      <div className="mx-auto w-full max-w-6xl px-4 py-1 sm:px-6 sm:py-1.5">
         <div className="flex items-center justify-between">
           <a href="/" aria-label="MAJUU home">
-            <BrandLogo wordmark={content.brand} logoSrc={content.logoSrc} />
+            <BrandLogo
+              wordmark={content.brand}
+              logoSrc={content.logoSrc}
+              className="origin-left scale-[0.88] sm:scale-[0.92]"
+            />
           </a>
 
           <a
@@ -128,7 +132,7 @@ export function SiteHeader({ content, launchContent, onDownloadUnavailable }) {
             onClick={handleDownloadClick}
             aria-disabled={!content.downloadsEnabled}
             aria-label="Download the MAJUU Android APK"
-            className={`inline-flex min-h-10 items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition ${
+            className={`inline-flex min-h-9 items-center justify-center rounded-full border px-3 py-1.5 text-xs font-semibold shadow-[0_10px_20px_rgba(15,23,42,0.07)] transition ${
               content.downloadsEnabled
                 ? 'border-emerald-700/12 bg-white text-emerald-700 hover:-translate-y-0.5 hover:border-emerald-700/18 hover:bg-emerald-50'
                 : 'border-emerald-700/12 bg-white text-emerald-700 hover:-translate-y-0.5 hover:border-emerald-700/18 hover:bg-emerald-50'
@@ -139,22 +143,22 @@ export function SiteHeader({ content, launchContent, onDownloadUnavailable }) {
         </div>
 
         {hasValidLaunchDate && !countdown.isLaunched && (
-          <div className="mt-1.5 flex justify-center">
-            <div className="header-countdown-card w-full max-w-[33rem] rounded-2xl border px-3 py-1.5 sm:px-3.5 sm:py-2">
-              <p className="text-center text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-white/90">
+          <div className="mt-1 flex justify-center">
+            <div className="header-countdown-card w-full max-w-[27.5rem] rounded-xl border px-2 py-1 sm:px-2.5 sm:py-1.5">
+              <p className="text-center text-[0.52rem] font-semibold uppercase tracking-[0.18em] text-white/90">
                 {countdownLabel}
               </p>
 
-              <div className="mt-1.5 flex items-center justify-center gap-1 sm:gap-1.5">
+              <div className="mt-1 flex items-center justify-center gap-[0.38rem] sm:gap-[0.46rem]">
                 {units.map((unit) => (
                   <div
                     key={unit.label}
-                    className="header-countdown-unit min-w-[2.75rem] rounded-lg px-1.5 py-0.5 text-center sm:min-w-[3rem] sm:px-2"
+                    className="header-countdown-unit min-w-[2.18rem] rounded-md px-1 py-0.5 text-center sm:min-w-[2.35rem] sm:px-1.5"
                   >
-                    <p className="header-countdown-value text-[0.92rem] font-semibold leading-none text-white sm:text-[1rem]">
+                    <p className="header-countdown-value text-[0.78rem] font-semibold leading-none text-white sm:text-[0.84rem]">
                       {unit.value}
                     </p>
-                    <p className="mt-0.5 text-[0.56rem] font-semibold uppercase tracking-[0.15em] text-white/82">
+                    <p className="mt-0.5 text-[0.46rem] font-semibold uppercase tracking-[0.12em] text-white/82">
                       {unit.label}
                     </p>
                   </div>
@@ -164,7 +168,7 @@ export function SiteHeader({ content, launchContent, onDownloadUnavailable }) {
               <button
                 type="button"
                 onClick={handleWaitlistClick}
-                className="header-waitlist-cta mt-1.5 inline-flex w-full items-center justify-center rounded-full border px-3 py-1.5 text-center text-[0.76rem] font-semibold leading-5 text-white transition hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/85 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-900 sm:text-xs"
+                className="header-waitlist-cta mt-1 inline-flex w-full items-center justify-center rounded-full border px-2.5 py-1 text-center text-[0.66rem] font-semibold leading-4 text-white transition hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/85 focus-visible:ring-offset-1 focus-visible:ring-offset-emerald-900 sm:text-[0.7rem]"
               >
                 {waitlistMessage}
               </button>
