@@ -194,6 +194,19 @@ textarea {
   font-variant-numeric: tabular-nums;
 }
 
+.header-waitlist-cta {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: linear-gradient(180deg, rgba(12, 111, 75, 0.88), rgba(5, 33, 24, 0.84));
+  box-shadow: 0 12px 30px rgba(6, 13, 20, 0.34);
+  backdrop-filter: blur(2px);
+  animation: header-waitlist-glow 2.5s ease-in-out infinite;
+}
+
+.header-waitlist-cta:hover {
+  background: linear-gradient(180deg, rgba(13, 130, 87, 0.92), rgba(6, 44, 31, 0.9));
+  box-shadow: 0 16px 34px rgba(6, 13, 20, 0.38);
+}
+
 .surface-panel {
   border: 1px solid var(--border-soft);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.74));
@@ -242,9 +255,24 @@ textarea {
   }
 }
 
+@keyframes header-waitlist-glow {
+  0%,
+  100% {
+    box-shadow: 0 12px 30px rgba(6, 13, 20, 0.34);
+  }
+
+  50% {
+    box-shadow: 0 16px 36px rgba(6, 13, 20, 0.42);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-search-float,
   .hero-search-caret {
+    animation: none;
+  }
+
+  .header-waitlist-cta {
     animation: none;
   }
 }

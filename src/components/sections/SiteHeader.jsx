@@ -160,7 +160,7 @@ export function SiteHeader({ content, launchContent, onDownloadUnavailable }) {
 
               <a
                 href={waitlistHref}
-                className="mt-1.5 block text-center text-[0.75rem] font-semibold leading-5 text-white transition hover:text-white/86 sm:text-xs"
+                className="header-waitlist-cta mt-1.5 inline-flex w-full items-center justify-center rounded-full border px-3 py-1.5 text-center text-[0.76rem] font-semibold leading-5 text-white transition hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/85 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-900 sm:text-xs"
               >
                 {waitlistMessage}
               </a>
