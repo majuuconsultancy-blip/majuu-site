@@ -106,8 +106,11 @@ export function SiteHeader({ content, launchContent, onDownloadUnavailable }) {
   const waitlistMessage =
     launchContent?.waitlistPrompt ||
     'Join the waitlist for a chance to win exclusive launch prizes.'
-  const waitlistHref = launchContent?.waitlistHref || '#community'
   const countdownLabel = launchContent?.countdownLabel || 'Launches May 10, 2026'
+
+  const handleWaitlistClick = () => {
+    onDownloadUnavailable?.()
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/60 bg-[rgba(250,249,244,0.68)] shadow-[0_10px_35px_rgba(15,23,42,0.04)] backdrop-blur-2xl">
@@ -158,12 +161,13 @@ export function SiteHeader({ content, launchContent, onDownloadUnavailable }) {
                 ))}
               </div>
 
-              <a
-                href={waitlistHref}
+              <button
+                type="button"
+                onClick={handleWaitlistClick}
                 className="header-waitlist-cta mt-1.5 inline-flex w-full items-center justify-center rounded-full border px-3 py-1.5 text-center text-[0.76rem] font-semibold leading-5 text-white transition hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/85 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-900 sm:text-xs"
               >
                 {waitlistMessage}
-              </a>
+              </button>
             </div>
           </div>
         )}
