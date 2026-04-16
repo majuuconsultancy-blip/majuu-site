@@ -134,8 +134,8 @@ export const downloadSectionContent = {
 export const launchCountdownContent = {
   launchDateIso: '2026-05-10T00:00:00+03:00',
   timeZone: 'Africa/Nairobi',
-  countdownLabel: 'Launches May 10, 2026',
-  waitlistPrompt: 'Join the waitlist for a chance to win exclusive launch prizes.',
+  countdownLabel: 'Launching soon',
+  waitlistPrompt: 'Join waitlist',
   waitlistHref: '#community',
 }
 
@@ -145,7 +145,10 @@ export const downloadNoticeContent = {
     'APK downloads are currently limited to our first testers while we complete the final rollout.',
   note: 'MAJUU will be launching officially very soon.',
   waitlistTitle: 'Join the waitlist for launch updates',
-  waitlistPlaceholder: 'Enter your email',
+  waitlistNamePlaceholder: 'Enter your name',
+  waitlistEmailPlaceholder: 'Enter your email',
+  waitlistPhonePlaceholder: 'Enter your phone number',
+  waitlistReferralPlaceholder: 'Referral code (optional)',
   waitlistButton: 'Join waitlist',
   buttonLabel: 'Got it',
 }
@@ -154,8 +157,11 @@ export const communityContent = {
   waitlist: {
     title: 'Get updates from MAJUU',
     text: 'Be the first to hear about new releases, features, and launch updates.',
-    placeholder: 'Enter your email',
-    button: 'Get Updates',
+    namePlaceholder: 'Enter your name',
+    emailPlaceholder: 'Enter your email',
+    phonePlaceholder: 'Enter your phone number',
+    referralPlaceholder: 'Referral code (optional)',
+    button: 'Join waitlist',
   },
   feedback: {
     title: 'Help Shape MAJUU',

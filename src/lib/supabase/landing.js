@@ -77,17 +77,66 @@ export async function getDownloadsEnabled() {
   return Boolean(data?.enabled)
 }
 
-export async function createWaitlistSignup(email, source = 'updates_section') {
+function generateReferralCode(name, email) {
+  const cleanName = String(name ?? '')
+    .toUpperCase()
+    .replace(/[^A-Z]/g, '')
+  const prefix = (cleanName.slice(0, 3) || 'MJU').padEnd(3, 'X')
+  const seed = `${name}:${email}:${Date.now()}:${Math.random()}`
+  let hash = 0
+
+  for (let index = 0; index < seed.length; index += 1) {
+    hash = (hash * 31 + seed.charCodeAt(index)) >>> 0
+  }
+
+  const suffix = hash.toString(36).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5)
+  return `${prefix}${suffix.padEnd(5, '0')}`
+}
+
+export async function createWaitlistSignup({
+  name,
+  email,
+  phoneNumber,
+  referredByCode = '',
+  source = 'updates_section',
+}) {
   const client = requireSupabase()
   const normalizedEmail = email.trim().toLowerCase()
+  const normalizedName = name.trim()
+  const normalizedPhoneNumber = phoneNumber.trim()
+  const normalizedReferredByCode =
+    referredByCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') || null
+
+  if (!normalizedName || !normalizedEmail || !normalizedPhoneNumber) {
+    throw new Error('Name, email, and phone number are required.')
+  }
+
   let error = null
+  let referralCode = generateReferralCode(normalizedName, normalizedEmail)
 
-  const insertWithSource = await client.from('waitlist_signups').insert({
-    email: normalizedEmail,
-    source,
-  })
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const insertWithSource = await client.from('waitlist_signups').insert({
+      full_name: normalizedName,
+      email: normalizedEmail,
+      phone_number: normalizedPhoneNumber,
+      source,
+      referral_code: referralCode,
+      referred_by_code: normalizedReferredByCode,
+    })
 
-  error = insertWithSource.error
+    error = insertWithSource.error
+
+    const isReferralCollision =
+      error &&
+      error.code === '23505' &&
+      String(error.message ?? '').toLowerCase().includes('referral_code')
+
+    if (!isReferralCollision) {
+      break
+    }
+
+    referralCode = generateReferralCode(normalizedName, normalizedEmail)
+  }
 
   const missingSourceColumn =
     error &&
@@ -97,10 +146,28 @@ export async function createWaitlistSignup(email, source = 'updates_section') {
 
   if (missingSourceColumn) {
     const fallbackInsert = await client.from('waitlist_signups').insert({
+      full_name: normalizedName,
       email: normalizedEmail,
+      phone_number: normalizedPhoneNumber,
+      referral_code: referralCode,
+      referred_by_code: normalizedReferredByCode,
     })
 
     error = fallbackInsert.error
+  }
+
+  const missingWaitlistColumns =
+    error &&
+    typeof error.message === 'string' &&
+    error.message.toLowerCase().includes('schema cache') &&
+    (error.message.toLowerCase().includes('full_name') ||
+      error.message.toLowerCase().includes('phone_number') ||
+      error.message.toLowerCase().includes('referral_code'))
+
+  if (missingWaitlistColumns) {
+    throw new Error(
+      'Waitlist schema is outdated. Run the latest SQL migration in Supabase and try again.',
+    )
   }
 
   if (error && error.code !== '23505') {
@@ -109,6 +176,7 @@ export async function createWaitlistSignup(email, source = 'updates_section') {
 
   return {
     alreadyJoined: error?.code === '23505',
+    referralCode,
   }
 }
 

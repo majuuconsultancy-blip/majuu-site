@@ -28,6 +28,10 @@ function isMissingSourceColumnError(error) {
 
   return (
     (message.includes('source') && message.includes('schema cache')) ||
+    (message.includes('full_name') && message.includes('schema cache')) ||
+    (message.includes('phone_number') && message.includes('schema cache')) ||
+    (message.includes('referral_code') && message.includes('schema cache')) ||
+    (message.includes('referred_by_code') && message.includes('schema cache')) ||
     message.includes('column waitlist_signups.source does not exist') ||
     String(error?.code ?? '') === '42703'
   )
@@ -216,14 +220,16 @@ export async function getAdminDashboardData() {
   let waitlist = []
   const waitlistResponse = await client
     .from('waitlist_signups')
-    .select('id, email, source, created_at')
+    .select(
+      'id, full_name, email, phone_number, referral_code, referred_by_code, source, created_at',
+    )
     .order('created_at', { ascending: false })
 
   if (waitlistResponse.error) {
     if (isMissingSourceColumnError(waitlistResponse.error)) {
       const fallbackWaitlistResponse = await client
         .from('waitlist_signups')
-        .select('id, email, created_at')
+        .select('id, full_name, email, phone_number, referral_code, referred_by_code, created_at')
         .order('created_at', { ascending: false })
 
       if (fallbackWaitlistResponse.error) {
@@ -236,7 +242,11 @@ export async function getAdminDashboardData() {
         }
       } else {
         waitlist = (fallbackWaitlistResponse.data ?? []).map((entry) => ({
+          full_name: entry.full_name ?? '',
           ...entry,
+          phone_number: entry.phone_number ?? '',
+          referral_code: entry.referral_code ?? '',
+          referred_by_code: entry.referred_by_code ?? '',
           source: 'legacy',
         }))
         issues.push(
@@ -252,6 +262,26 @@ export async function getAdminDashboardData() {
     }
   } else {
     waitlist = waitlistResponse.data ?? []
+  }
+
+  let referralRankings = []
+  const referralRankingResponse = await client
+    .from('waitlist_referral_rankings')
+    .select('referral_code, full_name, email, total_referrals, referral_points')
+    .order('referral_points', { ascending: false })
+    .order('total_referrals', { ascending: false })
+    .order('full_name', { ascending: true })
+
+  if (referralRankingResponse.error) {
+    if (isAdminSetupError(referralRankingResponse.error)) {
+      issues.push(
+        'Referral ranking is unavailable until the latest waitlist referral SQL migration is applied.',
+      )
+    } else {
+      throw referralRankingResponse.error
+    }
+  } else {
+    referralRankings = referralRankingResponse.data ?? []
   }
 
   let feedback = []
@@ -276,6 +306,7 @@ export async function getAdminDashboardData() {
     metrics: metricsResponse.data ?? [],
     settings,
     waitlist,
+    referralRankings,
     feedback,
     issues,
   }

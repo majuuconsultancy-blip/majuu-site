@@ -7,6 +7,41 @@ on conflict (key) do nothing;
 alter table public.waitlist_signups
 add column if not exists source text not null default 'updates_section';
 
+alter table public.waitlist_signups
+add column if not exists full_name text not null default '';
+
+alter table public.waitlist_signups
+add column if not exists phone_number text not null default '';
+
+alter table public.waitlist_signups
+add column if not exists referral_code text;
+
+update public.waitlist_signups
+set referral_code = upper(substr(md5(gen_random_uuid()::text), 1, 8))
+where coalesce(referral_code, '') = '';
+
+alter table public.waitlist_signups
+alter column referral_code set default upper(substr(md5(gen_random_uuid()::text), 1, 8));
+
+alter table public.waitlist_signups
+alter column referral_code set not null;
+
+alter table public.waitlist_signups
+add column if not exists referred_by_code text;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.waitlist_signups'::regclass
+      and conname = 'waitlist_signups_referral_code_key'
+  ) then
+    alter table public.waitlist_signups
+    add constraint waitlist_signups_referral_code_key unique (referral_code);
+  end if;
+end $$;
+
 create table if not exists public.landing_settings (
   key text primary key,
   enabled boolean not null default false,
@@ -33,6 +68,21 @@ grant select on public.landing_settings to anon, authenticated;
 grant update on public.landing_settings to authenticated;
 grant select on public.waitlist_signups to authenticated;
 grant select on public.feedback_entries to authenticated;
+
+create or replace view public.waitlist_referral_rankings as
+select
+  referrers.referral_code,
+  referrers.full_name,
+  referrers.email,
+  count(referrals.id)::int as total_referrals,
+  (count(referrals.id) * 10)::int as referral_points
+from public.waitlist_signups as referrers
+left join public.waitlist_signups as referrals
+  on upper(coalesce(referrals.referred_by_code, '')) = upper(referrers.referral_code)
+group by referrers.referral_code, referrers.full_name, referrers.email
+having count(referrals.id) > 0;
+
+grant select on public.waitlist_referral_rankings to authenticated;
 
 alter table public.landing_settings enable row level security;
 alter table public.admin_users enable row level security;

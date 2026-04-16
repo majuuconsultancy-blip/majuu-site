@@ -87,7 +87,11 @@ function downloadCsv(filename, rows) {
 
 function buildWaitlistCsvRows(entries) {
   return entries.map((entry) => ({
+    full_name: entry.full_name ?? '',
     email: entry.email ?? '',
+    phone_number: entry.phone_number ?? '',
+    referral_code: entry.referral_code ?? '',
+    referred_by_code: entry.referred_by_code ?? '',
     source: entry.source ?? 'legacy',
     created_at: entry.created_at ?? '',
   }))
@@ -234,7 +238,7 @@ function MetricsHeader({ metrics }) {
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
         Metrics header
       </p>
-      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <div>
           <p className="text-xs text-slate-500">Visitors</p>
           <p className="text-lg font-semibold tracking-[-0.03em] text-slate-950">
@@ -257,6 +261,12 @@ function MetricsHeader({ metrics }) {
           <p className="text-xs text-slate-500">Feedback</p>
           <p className="text-lg font-semibold tracking-[-0.03em] text-slate-950">
             {formatNumber(metrics.feedbackTotal)}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-500">Referral points</p>
+          <p className="text-lg font-semibold tracking-[-0.03em] text-slate-950">
+            {formatNumber(metrics.totalReferralPoints)}
           </p>
         </div>
       </div>
@@ -392,6 +402,7 @@ export function AdminApp() {
   }, [session])
 
   const waitlistEntries = useMemo(() => dashboard?.waitlist ?? [], [dashboard])
+  const referralRankings = useMemo(() => dashboard?.referralRankings ?? [], [dashboard])
   const feedbackEntries = useMemo(() => dashboard?.feedback ?? [], [dashboard])
   const dashboardIssues = useMemo(() => dashboard?.issues ?? [], [dashboard])
   const segmentedData = useMemo(() => {
@@ -413,6 +424,10 @@ export function AdminApp() {
       (item) => item.source === 'updates_section' || item.source === 'legacy',
     ).length
     const feedbackWithEmail = feedbackEntries.filter((item) => item.email).length
+    const totalReferralPoints = referralRankings.reduce(
+      (sum, entry) => sum + Number(entry.referral_points ?? 0),
+      0,
+    )
 
     return {
       siteVisits: metricMap.get('site_visits') ?? 0,
@@ -422,10 +437,11 @@ export function AdminApp() {
       updatesOnly: segmentedData.updates.length,
       modalWaitlistCount,
       updatesWaitlistCount,
+      totalReferralPoints,
       feedbackTotal: feedbackEntries.length,
       feedbackWithEmail,
     }
-  }, [dashboard, feedbackEntries, segmentedData, waitlistEntries])
+  }, [dashboard, feedbackEntries, referralRankings, segmentedData, waitlistEntries])
 
   const graphItems = useMemo(
     () => [
@@ -923,12 +939,38 @@ export function AdminApp() {
                 segmentedData.waitlist.map((entry) => (
                   <EntryRow
                     key={entry.id}
-                    title={entry.email}
-                    subtitle="Source: download notice"
+                    title={entry.full_name || entry.email}
+                    subtitle={`${
+                      entry.phone_number || 'No phone'
+                    } | Code: ${entry.referral_code || 'n/a'} | Source: download notice`}
                     date={formatDate(entry.created_at)}
                   />
                 ))
               )}
+            </div>
+
+            <div className="mt-6">
+              <h4 className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-500">
+                Referral ranking
+              </h4>
+              <div className="mt-3 divide-y divide-slate-100 rounded-2xl border border-slate-100 bg-slate-50/40 px-4">
+                {referralRankings.length === 0 ? (
+                  <p className="py-4 text-sm text-slate-500">
+                    No referral points yet. Rankings appear after referred signups.
+                  </p>
+                ) : (
+                  referralRankings.map((entry, index) => (
+                    <EntryRow
+                      key={entry.referral_code}
+                      title={`#${index + 1} ${entry.full_name || entry.email || 'Unknown'}`}
+                      subtitle={`Code: ${entry.referral_code} | Referrals: ${
+                        entry.total_referrals
+                      }`}
+                      date={`${formatNumber(entry.referral_points)} points`}
+                    />
+                  ))
+                )}
+              </div>
             </div>
           </section>
         )}
@@ -967,8 +1009,12 @@ export function AdminApp() {
                 segmentedData.updates.map((entry) => (
                   <EntryRow
                     key={entry.id}
-                    title={entry.email}
-                    subtitle={`Source: ${String(entry.source ?? 'legacy').replaceAll('_', ' ')}`}
+                    title={entry.full_name || entry.email}
+                    subtitle={`${entry.phone_number || 'No phone'} | Code: ${
+                      entry.referral_code || 'n/a'
+                    } | Referred by: ${entry.referred_by_code || 'none'} | Source: ${String(
+                      entry.source ?? 'legacy',
+                    ).replaceAll('_', ' ')}`}
                     date={formatDate(entry.created_at)}
                   />
                 ))

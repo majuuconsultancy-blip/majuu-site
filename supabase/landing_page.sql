@@ -12,9 +12,52 @@ on conflict (key) do nothing;
 
 create table if not exists public.waitlist_signups (
   id uuid primary key default gen_random_uuid(),
+  full_name text not null default '',
   email text not null unique,
+  phone_number text not null default '',
+  referral_code text not null default upper(substr(md5(gen_random_uuid()::text), 1, 8)),
+  referred_by_code text,
+  source text not null default 'updates_section',
   created_at timestamptz not null default timezone('utc', now())
 );
+
+alter table public.waitlist_signups
+add column if not exists full_name text not null default '';
+
+alter table public.waitlist_signups
+add column if not exists phone_number text not null default '';
+
+alter table public.waitlist_signups
+add column if not exists referral_code text;
+
+update public.waitlist_signups
+set referral_code = upper(substr(md5(gen_random_uuid()::text), 1, 8))
+where coalesce(referral_code, '') = '';
+
+alter table public.waitlist_signups
+alter column referral_code set default upper(substr(md5(gen_random_uuid()::text), 1, 8));
+
+alter table public.waitlist_signups
+alter column referral_code set not null;
+
+alter table public.waitlist_signups
+add column if not exists referred_by_code text;
+
+alter table public.waitlist_signups
+add column if not exists source text not null default 'updates_section';
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.waitlist_signups'::regclass
+      and conname = 'waitlist_signups_referral_code_key'
+  ) then
+    alter table public.waitlist_signups
+    add constraint waitlist_signups_referral_code_key unique (referral_code);
+  end if;
+end $$;
 
 create table if not exists public.feedback_entries (
   id uuid primary key default gen_random_uuid(),
