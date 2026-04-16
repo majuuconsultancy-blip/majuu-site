@@ -3,6 +3,7 @@ import {
   createFeedbackSubmission,
   createWaitlistSignup,
 } from '../../lib/supabase/landing'
+import { copyTextToClipboard } from '../../lib/clipboard'
 import { SectionWrapper } from '../layout/SectionWrapper'
 
 const defaultFeedbackState = {
@@ -60,16 +61,8 @@ export function EmailCaptureSection({ content }) {
   }
 
   const handleCopyReferral = async () => {
-    if (!waitlistState.referralCode || !navigator?.clipboard) {
-      return
-    }
-
-    try {
-      await navigator.clipboard.writeText(waitlistState.referralCode)
-      setCopyState('copied')
-    } catch {
-      setCopyState('failed')
-    }
+    const didCopy = await copyTextToClipboard(waitlistState.referralCode)
+    setCopyState(didCopy ? 'copied' : 'failed')
   }
 
   const handleWaitlistChange = (event) => {

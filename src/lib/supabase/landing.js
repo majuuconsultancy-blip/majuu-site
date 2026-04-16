@@ -174,8 +174,21 @@ export async function createWaitlistSignup({
     throw error
   }
 
+  if (error?.code === '23505') {
+    const { data: existingEntry } = await client
+      .from('waitlist_signups')
+      .select('referral_code')
+      .eq('email', normalizedEmail)
+      .maybeSingle()
+
+    return {
+      alreadyJoined: true,
+      referralCode: existingEntry?.referral_code ?? '',
+    }
+  }
+
   return {
-    alreadyJoined: error?.code === '23505',
+    alreadyJoined: false,
     referralCode,
   }
 }

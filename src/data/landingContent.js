@@ -142,7 +142,7 @@ export const launchCountdownContent = {
 export const downloadNoticeContent = {
   title: 'Early Tester Access',
   body:
-    'APK downloads are currently limited to our first testers while we complete the final rollout.',
+    'APK downloads are limited.',
   note: 'MAJUU will be launching officially very soon.',
   waitlistTitle: 'Join the waitlist for launch updates',
   waitlistNamePlaceholder: 'Enter your name',
