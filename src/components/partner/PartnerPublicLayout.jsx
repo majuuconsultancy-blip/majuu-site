@@ -1,7 +1,8 @@
 ﻿import { Menu, X } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 const navItems = [
+  { label: 'Home', href: '/' },
   { label: 'Referrals', href: '/referrals' },
   { label: 'Become a Partner', href: '/become-partner' },
   { label: 'Help', href: '/help' },
@@ -33,8 +34,6 @@ function NavigationLinks({ currentPath, onNavigate }) {
 
 export function PartnerPublicLayout({ currentPath, title, subtitle, children }) {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [headerHeight, setHeaderHeight] = useState(72)
-  const headerRef = useRef(null)
 
   useEffect(() => {
     if (!menuOpen) {
@@ -49,35 +48,11 @@ export function PartnerPublicLayout({ currentPath, title, subtitle, children }) 
     }
   }, [menuOpen])
 
-  useEffect(() => {
-    const node = headerRef.current
-    if (!node) {
-      return undefined
-    }
-
-    const measure = () => {
-      setHeaderHeight(Math.ceil(node.getBoundingClientRect().height))
-    }
-
-    measure()
-    const observer = new ResizeObserver(measure)
-    observer.observe(node)
-    window.addEventListener('resize', measure)
-
-    return () => {
-      observer.disconnect()
-      window.removeEventListener('resize', measure)
-    }
-  }, [])
-
   const pageTitle = useMemo(() => title || 'Partner Portal', [title])
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
-      <header
-        ref={headerRef}
-        className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur"
-      >
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3">
           <a href="/" className="text-sm font-semibold tracking-[0.14em] text-emerald-800">
             MAJUU
@@ -95,13 +70,9 @@ export function PartnerPublicLayout({ currentPath, title, subtitle, children }) 
 
       <div className="mx-auto flex w-full max-w-6xl gap-4 px-4 py-4">
         <aside
-          className={`fixed left-0 z-[45] w-[280px] max-w-[86vw] overflow-y-auto border-r border-slate-200 bg-white p-4 shadow-xl transition-transform duration-300 md:static md:block md:h-auto md:w-64 md:translate-x-0 md:rounded-2xl md:border md:shadow-none ${
-            menuOpen ? 'translate-x-0' : '-translate-x-full'
+          className={`fixed right-0 top-0 z-[110] h-screen w-[280px] max-w-[86vw] overflow-y-auto border-l border-slate-200 bg-white p-4 shadow-xl transition-transform duration-300 md:static md:block md:h-auto md:w-64 md:translate-x-0 md:rounded-2xl md:border md:shadow-none ${
+            menuOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
-          style={{
-            top: `${headerHeight}px`,
-            height: `calc(100vh - ${headerHeight}px)`,
-          }}
         >
           <div className="mb-4">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Menu</p>
@@ -113,7 +84,7 @@ export function PartnerPublicLayout({ currentPath, title, subtitle, children }) 
           <button
             type="button"
             onClick={() => setMenuOpen(false)}
-            className="fixed inset-0 z-40 bg-black/40 md:hidden"
+            className="fixed inset-0 z-[100] bg-black/40 md:hidden"
             aria-label="Close menu"
           />
         )}
