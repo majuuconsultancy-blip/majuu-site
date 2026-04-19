@@ -9,11 +9,13 @@ import {
   Settings,
   ShieldAlert,
   ShieldCheck,
+  Trash2,
   TriangleAlert,
   Users,
 } from 'lucide-react'
 import {
   checkAdminAccess,
+  deleteWaitlistSignup,
   getAdminDashboardData,
   getAdminSession,
   onAdminAuthStateChange,
@@ -132,6 +134,107 @@ function StatusChip({ icon: Icon, tone = 'neutral', children }) {
       <span>{children}</span>
     </div>
   )
+}
+
+function normalizePhone(value) {
+  return String(value ?? '').replace(/\D/g, '')
+}
+
+function buildWaitlistWarnings(entries) {
+  const warnings = []
+  const flaggedIds = new Set()
+  const referralCodes = new Set(
+    entries
+      .map((entry) => String(entry.referral_code ?? '').trim().toUpperCase())
+      .filter(Boolean),
+  )
+
+  const referralsByCode = new Map()
+  const phoneGroups = new Map()
+
+  entries.forEach((entry) => {
+    const referredByCode = String(entry.referred_by_code ?? '').trim().toUpperCase()
+    if (referredByCode) {
+      if (!referralCodes.has(referredByCode)) {
+        warnings.push({
+          key: `invalid-${entry.id}`,
+          level: 'high',
+          label: 'Invalid referral code used',
+          detail: `${entry.full_name || entry.email} joined with missing code ${referredByCode}.`,
+        })
+        flaggedIds.add(entry.id)
+      }
+
+      const list = referralsByCode.get(referredByCode) ?? []
+      const createdAtMs = new Date(entry.created_at).getTime()
+      list.push({ id: entry.id, createdAtMs })
+      referralsByCode.set(referredByCode, list)
+    }
+
+    const phone = normalizePhone(entry.phone_number)
+    if (phone.length >= 9) {
+      const current = phoneGroups.get(phone) ?? []
+      current.push(entry)
+      phoneGroups.set(phone, current)
+    }
+  })
+
+  referralsByCode.forEach((list, code) => {
+    const validList = list.filter((item) => !Number.isNaN(item.createdAtMs))
+    validList.sort((a, b) => a.createdAtMs - b.createdAtMs)
+
+    let left = 0
+    let peak = 0
+    for (let right = 0; right < validList.length; right += 1) {
+      while (validList[right].createdAtMs - validList[left].createdAtMs > 5 * 60 * 1000) {
+        left += 1
+      }
+      peak = Math.max(peak, right - left + 1)
+    }
+
+    if (peak >= 4) {
+      warnings.push({
+        key: `burst-${code}`,
+        level: 'high',
+        label: 'Referral burst detected',
+        detail: `Code ${code} received ${peak} joins within 5 minutes.`,
+      })
+      validList.forEach((item) => flaggedIds.add(item.id))
+    } else if (validList.length >= 8) {
+      warnings.push({
+        key: `volume-${code}`,
+        level: 'medium',
+        label: 'Unusually high referral volume',
+        detail: `Code ${code} has ${validList.length} referred joins.`,
+      })
+      validList.forEach((item) => flaggedIds.add(item.id))
+    }
+  })
+
+  phoneGroups.forEach((group, phone) => {
+    const emails = new Set(
+      group
+        .map((entry) => String(entry.email ?? '').trim().toLowerCase())
+        .filter(Boolean),
+    )
+    if (emails.size >= 3) {
+      warnings.push({
+        key: `phone-${phone}`,
+        level: 'medium',
+        label: 'Phone reused across many signups',
+        detail: `Phone ${phone} appears in ${emails.size} distinct waitlist emails.`,
+      })
+      group.forEach((entry) => flaggedIds.add(entry.id))
+    }
+  })
+
+  const levelRank = { high: 0, medium: 1, low: 2 }
+  warnings.sort((a, b) => levelRank[a.level] - levelRank[b.level])
+
+  return {
+    warnings,
+    flaggedIds,
+  }
 }
 
 function GraphBars({ items }) {
@@ -311,6 +414,7 @@ export function AdminApp() {
   const [dashboard, setDashboard] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isTogglingDownloads, setIsTogglingDownloads] = useState(false)
+  const [deletingWaitlistId, setDeletingWaitlistId] = useState('')
   const [adminMode, setAdminMode] = useState('secure')
   const [setupRequired, setSetupRequired] = useState(false)
   const [activeScreen, setActiveScreen] = useState('overview')
@@ -411,6 +515,10 @@ export function AdminApp() {
 
     return { waitlist, updates }
   }, [waitlistEntries])
+  const waitlistWarnings = useMemo(
+    () => buildWaitlistWarnings(waitlistEntries),
+    [waitlistEntries],
+  )
 
   const metrics = useMemo(() => {
     const metricMap = new Map(
@@ -573,6 +681,35 @@ export function AdminApp() {
       'majuu-waitlist-download-modal.csv',
       buildWaitlistCsvRows(segmentedData.waitlist),
     )
+  }
+
+  const handleDeleteWaitlistEntry = async (entry) => {
+    const isConfirmed = window.confirm(
+      `Delete ${entry.full_name || entry.email} from waitlist? This also removes their referral code and clears referrals tied to that code.`,
+    )
+
+    if (!isConfirmed) {
+      return
+    }
+
+    setDeletingWaitlistId(entry.id)
+    setMessage({ type: 'idle', text: '' })
+
+    try {
+      await deleteWaitlistSignup(entry.id)
+      await loadDashboard()
+      setMessage({
+        type: 'success',
+        text: `Waitlist entry deleted for ${entry.full_name || entry.email}.`,
+      })
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: mapAdminErrorMessage(error, 'We could not delete this waitlist entry.'),
+      })
+    } finally {
+      setDeletingWaitlistId('')
+    }
   }
 
   const handleExportUpdatesWaitlist = () => {
@@ -937,17 +1074,53 @@ export function AdminApp() {
                 <p className="py-4 text-sm text-slate-500">No waitlist entries yet.</p>
               ) : (
                 segmentedData.waitlist.map((entry) => (
-                  <EntryRow
-                    key={entry.id}
-                    title={entry.full_name || entry.email}
-                    subtitle={`${
-                      entry.phone_number || 'No phone'
-                    } | Code: ${entry.referral_code || 'n/a'} | Source: download notice`}
-                    date={formatDate(entry.created_at)}
-                  />
+                  <article key={entry.id} className="border-b border-slate-100 py-4 last:border-b-0">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">{entry.full_name || entry.email}</p>
+                        <p className="text-xs text-slate-500">
+                          {entry.phone_number || 'No phone'} | Code: {entry.referral_code || 'n/a'} | Source:
+                          {' '}download notice
+                        </p>
+                        {waitlistWarnings.flaggedIds.has(entry.id) && (
+                          <p className="mt-1 text-xs font-semibold text-amber-700">
+                            Warning: flagged by abuse checks
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs text-slate-500">{formatDate(entry.created_at)}</p>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteWaitlistEntry(entry)}
+                          disabled={deletingWaitlistId === entry.id}
+                          className="inline-flex min-h-9 items-center justify-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-wait disabled:opacity-60"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          {deletingWaitlistId === entry.id ? 'Deleting...' : 'Delete'}
+                        </button>
+                      </div>
+                    </div>
+                  </article>
                 ))
               )}
             </div>
+
+            {waitlistWarnings.warnings.length > 0 && (
+              <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4">
+                <div className="flex items-center gap-2">
+                  <TriangleAlert className="h-4 w-4 text-amber-700" />
+                  <p className="text-sm font-semibold text-amber-900">Referral abuse warnings</p>
+                </div>
+                <div className="mt-3 space-y-2">
+                  {waitlistWarnings.warnings.map((warning) => (
+                    <p key={warning.key} className="text-xs leading-5 text-amber-900">
+                      <span className="font-semibold">{warning.label}:</span> {warning.detail}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="mt-6">
               <h4 className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-500">
@@ -1007,16 +1180,35 @@ export function AdminApp() {
                 <p className="py-4 text-sm text-slate-500">No update signups yet.</p>
               ) : (
                 segmentedData.updates.map((entry) => (
-                  <EntryRow
-                    key={entry.id}
-                    title={entry.full_name || entry.email}
-                    subtitle={`${entry.phone_number || 'No phone'} | Code: ${
-                      entry.referral_code || 'n/a'
-                    } | Referred by: ${entry.referred_by_code || 'none'} | Source: ${String(
-                      entry.source ?? 'legacy',
-                    ).replaceAll('_', ' ')}`}
-                    date={formatDate(entry.created_at)}
-                  />
+                  <article key={entry.id} className="border-b border-slate-100 py-4 last:border-b-0">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">{entry.full_name || entry.email}</p>
+                        <p className="text-xs text-slate-500">
+                          {entry.phone_number || 'No phone'} | Code: {entry.referral_code || 'n/a'} | Referred
+                          by: {entry.referred_by_code || 'none'} | Source:{' '}
+                          {String(entry.source ?? 'legacy').replaceAll('_', ' ')}
+                        </p>
+                        {waitlistWarnings.flaggedIds.has(entry.id) && (
+                          <p className="mt-1 text-xs font-semibold text-amber-700">
+                            Warning: flagged by abuse checks
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs text-slate-500">{formatDate(entry.created_at)}</p>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteWaitlistEntry(entry)}
+                          disabled={deletingWaitlistId === entry.id}
+                          className="inline-flex min-h-9 items-center justify-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-wait disabled:opacity-60"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          {deletingWaitlistId === entry.id ? 'Deleting...' : 'Delete'}
+                        </button>
+                      </div>
+                    </div>
+                  </article>
                 ))
               )}
             </div>

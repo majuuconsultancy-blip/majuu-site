@@ -14,7 +14,8 @@ import {
   whatIsMajuuContent,
   whyMajuuMattersContent,
 } from './data/landingContent'
-import { AdminApp } from './components/admin/AdminApp'
+import { PartnerAdminApp } from './components/admin/PartnerAdminApp'
+import { PartnerPortalApp } from './components/partner/PartnerPortalApp'
 import { ContactSection } from './components/sections/ContactSection'
 import { DownloadCtaSection } from './components/sections/DownloadCtaSection'
 import { EmailCaptureSection } from './components/sections/EmailCaptureSection'
@@ -35,8 +36,13 @@ import {
 const visitStorageKey = 'majuu-site-visitor-v1'
 
 function App() {
-  const isAdminRoute =
-    typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '/'
+  const isAdminRoute = pathname.startsWith('/admin')
+  const isPartnerRoute =
+    pathname === '/become-partner' ||
+    pathname === '/referrals' ||
+    pathname === '/help' ||
+    pathname === '/partner'
   const [isDownloadNoticeOpen, setIsDownloadNoticeOpen] = useState(false)
   const [downloadsEnabled, setDownloadsEnabled] = useState(
     siteHeaderContent.downloadsEnabled,
@@ -101,7 +107,11 @@ function App() {
   )
 
   if (isAdminRoute) {
-    return <AdminApp />
+    return <PartnerAdminApp />
+  }
+
+  if (isPartnerRoute) {
+    return <PartnerPortalApp pathname={pathname} />
   }
 
   return (

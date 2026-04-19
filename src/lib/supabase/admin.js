@@ -334,3 +334,21 @@ export async function setDownloadsEnabled(enabled) {
 
   return enabled
 }
+
+export async function deleteWaitlistSignup(id) {
+  const client = requireSupabase()
+
+  const { error } = await client.from('waitlist_signups').delete().eq('id', id)
+
+  if (error) {
+    if (isAdminSetupError(error)) {
+      throw new Error(
+        'Waitlist delete is not ready yet. Run the latest admin SQL migration in Supabase, then refresh this page.',
+      )
+    }
+
+    throw error
+  }
+
+  return true
+}
