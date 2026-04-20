@@ -87,7 +87,7 @@ export function SiteHeader({ content, launchContent, onDownloadUnavailable }) {
             <button
               type="button"
               onClick={handleWaitlistClick}
-              className="header-waitlist-cta inline-flex w-[40%] items-center justify-center rounded-full border px-2 py-0.5 text-center text-[0.56rem] font-semibold uppercase tracking-[0.04em] text-white transition hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/30 focus-visible:ring-offset-1 focus-visible:ring-offset-white"
+              className="header-waitlist-cta inline-flex w-[33%] items-center justify-center rounded-full border px-1.5 py-0.5 text-center text-[0.5rem] font-medium uppercase leading-none tracking-[0.02em] text-white transition hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/30 focus-visible:ring-offset-1 focus-visible:ring-offset-white"
             >
               {waitlistMessage}
             </button>

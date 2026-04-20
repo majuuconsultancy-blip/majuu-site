@@ -1,4 +1,4 @@
-﻿create extension if not exists pgcrypto;
+create extension if not exists pgcrypto;
 
 insert into public.landing_metrics (key, value)
 values ('site_visits', 0)
@@ -41,6 +41,7 @@ begin
     add constraint waitlist_signups_referral_code_key unique (referral_code);
   end if;
 end $$;
+
 
 do $$
 begin
@@ -662,3 +663,59 @@ begin
   end if;
 end $$;
 
+
+
+-- Policy hardening for partner onboarding inserts.
+-- Run this block to repair environments where old/missing policies still block submission.
+do $$
+begin
+  if to_regclass('public.partners') is not null then
+    alter table public.partners enable row level security;
+    drop policy if exists "Allow public insert" on public.partners;
+    create policy "Allow public insert"
+      on public.partners
+      for insert
+      to public
+      with check (true);
+  end if;
+
+  if to_regclass('public.countries') is not null then
+    alter table public.countries enable row level security;
+    drop policy if exists "Allow public insert" on public.countries;
+    create policy "Allow public insert"
+      on public.countries
+      for insert
+      to public
+      with check (true);
+  end if;
+
+  if to_regclass('public.branches') is not null then
+    alter table public.branches enable row level security;
+    drop policy if exists "Allow public insert" on public.branches;
+    create policy "Allow public insert"
+      on public.branches
+      for insert
+      to public
+      with check (true);
+  end if;
+
+  if to_regclass('public.services') is not null then
+    alter table public.services enable row level security;
+    drop policy if exists "Allow public insert" on public.services;
+    create policy "Allow public insert"
+      on public.services
+      for insert
+      to public
+      with check (true);
+  end if;
+
+  if to_regclass('public.admins') is not null then
+    alter table public.admins enable row level security;
+    drop policy if exists "Allow public insert" on public.admins;
+    create policy "Allow public insert"
+      on public.admins
+      for insert
+      to public
+      with check (true);
+  end if;
+end $$;

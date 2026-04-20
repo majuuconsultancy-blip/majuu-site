@@ -153,10 +153,10 @@ function createAdmin() {
 
 function Card({ title, subtitle, children }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+    <section className="space-y-3">
       <h3 className="text-base font-semibold text-slate-900">{title}</h3>
       {subtitle && <p className="mt-1 text-sm text-slate-600">{subtitle}</p>}
-      <div className="mt-3 space-y-3">{children}</div>
+      <div className="space-y-3">{children}</div>
     </section>
   )
 }
@@ -1095,7 +1095,7 @@ export function BecomePartnerPage() {
             <InlineError message={errors.branches_list} />
           </div>
           {form.branches.map((branch, index) => (
-            <div key={branch.localId} className="rounded-xl border border-slate-200 bg-white p-3">
+            <div key={branch.localId} className="space-y-3 border-b border-slate-200 pb-4">
               <div className="mb-2 flex items-center justify-between">
                 <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
                   Branch {index + 1}
@@ -1189,7 +1189,7 @@ export function BecomePartnerPage() {
                 branches: [...prev.branches, createBranch(prev.homeCountries[0] || '')],
               }))
             }
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800"
+            className="inline-flex items-center text-sm font-semibold text-emerald-700 transition hover:text-emerald-800"
           >
             Add Branch
           </button>
@@ -1204,7 +1204,7 @@ export function BecomePartnerPage() {
             <InlineError message={errors.admins_list} />
           </div>
           {form.admins.map((admin, index) => (
-            <div key={admin.localId} className="rounded-xl border border-slate-200 bg-white p-3">
+            <div key={admin.localId} className="space-y-3 border-b border-slate-200 pb-4">
               <div className="mb-2 flex items-center justify-between">
                 <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
                   Admin {index + 1}
@@ -1295,7 +1295,7 @@ export function BecomePartnerPage() {
                 admins: [...prev.admins, createAdmin()],
               }))
             }
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800"
+            className="inline-flex items-center text-sm font-semibold text-emerald-700 transition hover:text-emerald-800"
           >
             Add Admin
           </button>
@@ -1310,7 +1310,7 @@ export function BecomePartnerPage() {
             <InlineError message={errors.destination_list} />
           </div>
           {form.destinationCountries.map((country, index) => (
-            <div key={country.localId} className="rounded-xl border border-slate-200 bg-white p-3">
+            <div key={country.localId} className="space-y-3 border-b border-slate-200 pb-4">
               <div className="mb-2 flex items-center justify-between">
                 <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
                   Destination {index + 1}
@@ -1375,7 +1375,7 @@ export function BecomePartnerPage() {
                 ],
               }))
             }
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800"
+            className="inline-flex items-center text-sm font-semibold text-emerald-700 transition hover:text-emerald-800"
           >
             Add Country
           </button>
@@ -1387,7 +1387,7 @@ export function BecomePartnerPage() {
       return (
         <Card title="What services do you offer per destination?">
           {form.destinationCountries.map((country, countryIndex) => (
-            <div key={country.localId} className="rounded-xl border border-slate-200 bg-white p-3">
+            <div key={country.localId} className="space-y-3 border-b border-slate-200 pb-4">
               <button
                 type="button"
                 onClick={() =>
@@ -1412,7 +1412,7 @@ export function BecomePartnerPage() {
               {expandedServiceCountries[country.localId] && (
                 <div className="mt-3 space-y-3">
                   {country.services.map((service, serviceIndex) => (
-                    <div key={service.localId} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <div key={service.localId} className="space-y-3 border-l-2 border-slate-200 pl-3">
                       <div className="mb-2 flex items-center justify-between">
                         <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
                           Service {serviceIndex + 1}
@@ -1537,7 +1537,7 @@ export function BecomePartnerPage() {
                         services: [...country.services, createService(country.tracks || [])],
                       })
                     }
-                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800"
+                    className="inline-flex items-center text-sm font-semibold text-emerald-700 transition hover:text-emerald-800"
                   >
                     Add Service
                   </button>
@@ -1556,7 +1556,7 @@ export function BecomePartnerPage() {
           subtitle="This helps clients understand and choose the right destination."
         >
           {form.destinationCountries.map((country, index) => (
-            <div key={country.localId} className="rounded-xl border border-slate-200 bg-white p-3">
+            <div key={country.localId} className="space-y-3 border-b border-slate-200 pb-4">
               <button
                 type="button"
                 onClick={() =>
@@ -1674,7 +1674,7 @@ export function BecomePartnerPage() {
                     />
                   </Field>
 
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <div className="border-l-2 border-slate-200 pl-3">
                     <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
                       Select Track
                     </p>
@@ -1689,7 +1689,7 @@ export function BecomePartnerPage() {
                         const track = normalizeCountryTracks(country.tracks)[0]
                         const isSelected = Boolean(country.details.trackOverrides?.[track]?.enabled)
                         return (
-                          <div key={track} className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                          <div key={track} className="py-1">
                             <p className="text-sm font-medium text-emerald-900">
                               {track} {isSelected ? 'selected' : 'selected automatically'}
                             </p>
@@ -1703,7 +1703,7 @@ export function BecomePartnerPage() {
                             enabled: false,
                           }
                           return (
-                            <div key={track} className="rounded-lg border border-slate-200 bg-white p-3">
+                            <div key={track} className="py-1">
                               <Choice
                                 active={override.enabled}
                                 onClick={() =>
@@ -1876,8 +1876,8 @@ export function BecomePartnerPage() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="px-1">
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
           Step {step + 1} of {STEPS.length}
         </p>
@@ -1907,7 +1907,7 @@ export function BecomePartnerPage() {
       )}
 
       {status.type === 'success' && submittedSnapshot && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+        <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/70 p-3">
           <p className="text-sm font-medium text-emerald-900">Submission saved successfully.</p>
           <button
             type="button"
