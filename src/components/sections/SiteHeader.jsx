@@ -87,9 +87,20 @@ export function SiteHeader({ content, launchContent, onDownloadUnavailable }) {
             <button
               type="button"
               onClick={handleWaitlistClick}
-              className="header-pill-cta inline-flex h-7 w-1/2 items-center justify-center rounded-full border px-2 text-center text-[0.58rem] font-semibold leading-none tracking-[0.01em] text-slate-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 focus-visible:ring-offset-1 focus-visible:ring-offset-white"
+              className="header-pill-cta inline-flex h-7 w-1/2 items-center justify-center overflow-hidden rounded-full border px-1 text-center font-semibold text-slate-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 focus-visible:ring-offset-1 focus-visible:ring-offset-white"
             >
-              {waitlistMessage}
+              <span
+                className="inline-block whitespace-nowrap"
+                style={{
+                  fontSize: '7px',
+                  lineHeight: 1,
+                  letterSpacing: '0.01em',
+                  transform: 'scale(0.82)',
+                  transformOrigin: 'center',
+                }}
+              >
+                {waitlistMessage}
+              </span>
             </button>
             <a
               href="/become-partner"
