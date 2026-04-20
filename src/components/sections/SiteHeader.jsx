@@ -83,18 +83,18 @@ export function SiteHeader({ content, launchContent, onDownloadUnavailable }) {
           <p className="header-launching-soon text-center text-[0.9rem] leading-none text-slate-800/90">
             {launchLabel}
           </p>
-          <div className="flex w-full max-w-[15rem] items-center gap-1.5">
+          <div className="flex w-full max-w-[13.75rem] items-center gap-1.5">
             <button
               type="button"
               onClick={handleWaitlistClick}
-              className="header-waitlist-cta inline-flex w-[33%] items-center justify-center rounded-full border px-1.5 py-0.5 text-center text-[0.5rem] font-medium uppercase leading-none tracking-[0.02em] text-white transition hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/30 focus-visible:ring-offset-1 focus-visible:ring-offset-white"
+              className="header-pill-cta inline-flex h-7 w-1/2 items-center justify-center rounded-full border px-2 text-center text-[0.58rem] font-semibold leading-none tracking-[0.01em] text-slate-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 focus-visible:ring-offset-1 focus-visible:ring-offset-white"
             >
               {waitlistMessage}
             </button>
             <a
               href="/become-partner"
               onClick={() => setIsMenuOpen(false)}
-              className="inline-flex w-1/2 items-center justify-center rounded-full border border-emerald-700/30 bg-white px-2.5 py-1 text-center text-[0.63rem] font-semibold uppercase tracking-[0.04em] text-emerald-800 transition hover:-translate-y-0.5 hover:bg-emerald-50"
+              className="header-pill-cta inline-flex h-7 w-1/2 items-center justify-center rounded-full border px-2 text-center text-[0.58rem] font-semibold leading-none tracking-[0.01em] text-slate-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 focus-visible:ring-offset-1 focus-visible:ring-offset-white"
             >
               Become a Partner
             </a>
