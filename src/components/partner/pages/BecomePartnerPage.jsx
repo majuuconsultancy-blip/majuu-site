@@ -866,15 +866,10 @@ export function BecomePartnerPage() {
           // Ignore storage cleanup errors after successful submit.
         }
       }
-    } catch (error) {
-      const rawMessage = String(error?.message ?? '').toLowerCase()
-      const isNetworkFetchError =
-        rawMessage.includes('failed to fetch') || rawMessage.includes('networkerror')
+    } catch {
       setStatus({
         type: 'error',
-        message: isNetworkFetchError
-          ? 'Something went wrong while submitting. Please try again.'
-          : error.message || 'Submission failed. Please try again.',
+        message: 'Something went wrong while submitting. Please try again.',
       })
     }
   }
@@ -1875,6 +1870,32 @@ export function BecomePartnerPage() {
     )
   }
 
+  if (status.type === 'success' && submittedSnapshot) {
+    return (
+      <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 sm:p-6">
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700">
+          Submitted Successfully
+        </p>
+        <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-emerald-900">
+          Your partner profile is in review
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-emerald-900/90">
+          Thank you for submitting your onboarding profile. We will get back to you soon as soon as
+          we review your profile.
+        </p>
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => downloadPartnerSubmissionPdf(submittedSnapshot)}
+            className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white"
+          >
+            Download Submission
+          </button>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="px-1">
@@ -1904,19 +1925,6 @@ export function BecomePartnerPage() {
         >
           {status.message}
         </p>
-      )}
-
-      {status.type === 'success' && submittedSnapshot && (
-        <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/70 p-3">
-          <p className="text-sm font-medium text-emerald-900">Submission saved successfully.</p>
-          <button
-            type="button"
-            onClick={() => downloadPartnerSubmissionPdf(submittedSnapshot)}
-            className="mt-3 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white"
-          >
-            Download Submission
-          </button>
-        </div>
       )}
 
       <div className="flex items-center justify-between gap-3">

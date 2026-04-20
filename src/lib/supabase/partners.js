@@ -45,6 +45,15 @@ function isInsertRlsError(error, tableName) {
   )
 }
 
+function getSupabaseProjectHost() {
+  try {
+    const rawUrl = String(import.meta.env.VITE_SUPABASE_URL ?? '')
+    return rawUrl ? new URL(rawUrl).host : 'unknown-project'
+  } catch {
+    return 'unknown-project'
+  }
+}
+
 function toFriendlySubmissionError(error) {
   const rawMessage = String(error?.message ?? '').toLowerCase()
   if (rawMessage.includes('failed to fetch') || rawMessage.includes('networkerror')) {
@@ -147,7 +156,9 @@ export async function createPartnerOnboardingSubmission(payload) {
   if (partnerError) {
     if (isInsertRlsError(partnerError, 'partners')) {
       throw new Error(
-        'Submission is blocked by missing partner insert policies. Apply the latest SQL policy updates and retry.',
+        `Submission is blocked by partner insert RLS in ${getSupabaseProjectHost()}. DB message: ${String(
+          partnerError?.message ?? '',
+        )}`,
       )
     }
     throw toFriendlySubmissionError(partnerError)
@@ -445,6 +456,26 @@ export async function getPartnerDetails(partnerId) {
     branches: branchesResult.data ?? [],
     services: servicesResult.data ?? [],
     admins: adminsResult.data ?? [],
+  }
+}
+
+export async function markPartnerAsReviewed(partnerId) {
+  const client = requireSupabase()
+  const access = await checkAdminAccess()
+  if (!access.authorized) {
+    throw new Error('Access denied.')
+  }
+
+  const { error } = await client
+    .from('partners')
+    .update({
+      status: 'reviewed',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', partnerId)
+
+  if (error) {
+    throw error
   }
 }
 

@@ -42,7 +42,6 @@ begin
   end if;
 end $$;
 
-
 do $$
 begin
   if to_regclass('public.partners') is not null then
@@ -498,6 +497,7 @@ begin
       to anon, authenticated
       with check (true);
 
+    drop policy if exists "Admins can view partners" on public.partners;
     create policy "Admins can view partners"
       on public.partners
       for select
@@ -523,6 +523,7 @@ begin
       to anon, authenticated
       with check (true);
 
+    drop policy if exists "Admins can view countries" on public.countries;
     create policy "Admins can view countries"
       on public.countries
       for select
@@ -548,6 +549,7 @@ begin
       to anon, authenticated
       with check (true);
 
+    drop policy if exists "Admins can view country details" on public.country_details;
     create policy "Admins can view country details"
       on public.country_details
       for select
@@ -573,6 +575,7 @@ begin
       to anon, authenticated
       with check (true);
 
+    drop policy if exists "Admins can view branches" on public.branches;
     create policy "Admins can view branches"
       on public.branches
       for select
@@ -598,6 +601,7 @@ begin
       to anon, authenticated
       with check (true);
 
+    drop policy if exists "Admins can view services" on public.services;
     create policy "Admins can view services"
       on public.services
       for select
@@ -623,6 +627,7 @@ begin
       to anon, authenticated
       with check (true);
 
+    drop policy if exists "Admins can view assigned admins" on public.admins;
     create policy "Admins can view assigned admins"
       on public.admins
       for select
@@ -648,12 +653,14 @@ begin
       to anon, authenticated
       using (true);
 
+    drop policy if exists "Authenticated can create referrals" on public.referrals;
     create policy "Authenticated can create referrals"
       on public.referrals
       for insert
       to authenticated
       with check (true);
 
+    drop policy if exists "Admins can manage referrals" on public.referrals;
     create policy "Admins can manage referrals"
       on public.referrals
       for all
@@ -665,13 +672,23 @@ end $$;
 
 
 
--- Policy hardening for partner onboarding inserts.
--- Run this block to repair environments where old/missing policies still block submission.
+-- Policy reset for partner onboarding inserts.
+-- This removes old INSERT/ALL policies that may still block onboarding, then recreates open insert policies.
 do $$
+declare
+  p record;
 begin
   if to_regclass('public.partners') is not null then
     alter table public.partners enable row level security;
-    drop policy if exists "Allow public insert" on public.partners;
+    for p in
+      select policyname
+      from pg_policies
+      where schemaname = 'public'
+        and tablename = 'partners'
+        and cmd in ('INSERT', 'ALL')
+    loop
+      execute format('drop policy if exists %I on public.partners', p.policyname);
+    end loop;
     create policy "Allow public insert"
       on public.partners
       for insert
@@ -681,7 +698,15 @@ begin
 
   if to_regclass('public.countries') is not null then
     alter table public.countries enable row level security;
-    drop policy if exists "Allow public insert" on public.countries;
+    for p in
+      select policyname
+      from pg_policies
+      where schemaname = 'public'
+        and tablename = 'countries'
+        and cmd in ('INSERT', 'ALL')
+    loop
+      execute format('drop policy if exists %I on public.countries', p.policyname);
+    end loop;
     create policy "Allow public insert"
       on public.countries
       for insert
@@ -691,7 +716,15 @@ begin
 
   if to_regclass('public.branches') is not null then
     alter table public.branches enable row level security;
-    drop policy if exists "Allow public insert" on public.branches;
+    for p in
+      select policyname
+      from pg_policies
+      where schemaname = 'public'
+        and tablename = 'branches'
+        and cmd in ('INSERT', 'ALL')
+    loop
+      execute format('drop policy if exists %I on public.branches', p.policyname);
+    end loop;
     create policy "Allow public insert"
       on public.branches
       for insert
@@ -701,7 +734,15 @@ begin
 
   if to_regclass('public.services') is not null then
     alter table public.services enable row level security;
-    drop policy if exists "Allow public insert" on public.services;
+    for p in
+      select policyname
+      from pg_policies
+      where schemaname = 'public'
+        and tablename = 'services'
+        and cmd in ('INSERT', 'ALL')
+    loop
+      execute format('drop policy if exists %I on public.services', p.policyname);
+    end loop;
     create policy "Allow public insert"
       on public.services
       for insert
@@ -711,11 +752,37 @@ begin
 
   if to_regclass('public.admins') is not null then
     alter table public.admins enable row level security;
-    drop policy if exists "Allow public insert" on public.admins;
+    for p in
+      select policyname
+      from pg_policies
+      where schemaname = 'public'
+        and tablename = 'admins'
+        and cmd in ('INSERT', 'ALL')
+    loop
+      execute format('drop policy if exists %I on public.admins', p.policyname);
+    end loop;
     create policy "Allow public insert"
       on public.admins
       for insert
       to public
       with check (true);
+  end if;
+end $$;
+
+do $$
+begin
+  if to_regclass('public.partners') is not null and not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'partners'
+      and policyname = 'Admins can update partners'
+  ) then
+    create policy "Admins can update partners"
+      on public.partners
+      for update
+      to authenticated
+      using (public.is_admin())
+      with check (public.is_admin());
   end if;
 end $$;

@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
-import { ChevronDown, Loader2, LogOut, Menu, RefreshCw, X } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, FileDown, Loader2, LogOut, Menu, RefreshCw, X } from 'lucide-react'
 import {
   checkAdminAccess,
   getAdminSession,
@@ -11,8 +11,10 @@ import {
 import {
   getPartnerAdminSnapshot,
   getPartnerDetails,
+  markPartnerAsReviewed,
 } from '../../lib/supabase/partners'
 import { isSupabaseConfigured } from '../../lib/supabase/client'
+import { downloadPartnerSubmissionPdf } from '../../lib/pdf/partnerSubmissionPdf'
 
 const sidebarItems = [
   'Dashboard',
@@ -78,61 +80,182 @@ function Sidebar({ active, onSelect, open, onClose }) {
   )
 }
 
-function PartnerDetailsPanel({ details }) {
+function buildSnapshotFromPartnerDetails(details) {
   if (!details) {
     return null
   }
 
+  const servicesByCountry = new Map()
+  for (const service of details.services ?? []) {
+    const key = String(service.destination_country || 'Unknown')
+    const list = servicesByCountry.get(key) ?? []
+    list.push(service)
+    servicesByCountry.set(key, list)
+  }
+
+  const destinationCountries = (details.countries ?? []).map((country) => {
+    const countryServices = servicesByCountry.get(String(country.name || 'Unknown')) ?? []
+    return {
+      localId: country.id,
+      name: country.name || '',
+      tracks: country.detail?.details_json?.countryTracks || [],
+      services: countryServices.map((service) => ({
+        localId: service.id,
+        serviceName: service.service_name || '',
+        description: service.description || '',
+        requiredInformation:
+          service.required_information || service.requirements_json?.required_information || '',
+        estimatedProcessingTime: service.estimated_processing_time || '',
+        tracks: service.tracks || [],
+      })),
+      details: {
+        whyChooseCountry: country.detail?.why_choose_country || '',
+        topCareerFields: country.detail?.top_career_fields || '',
+        visaProcessingTime: country.detail?.visa_processing_time || '',
+        totalProcessTime: country.detail?.total_process_time || '',
+        visaSuccessRate: country.detail?.visa_acceptance_rate || '',
+        scholarshipAvailabilityPercent: country.detail?.scholarship_availability_percent || '',
+        costEstimate: country.detail?.cost_estimate || '',
+        startingBudget: country.detail?.starting_budget || '',
+        requirements: country.detail?.requirements || '',
+        notes: country.detail?.notes || '',
+        trackOverrides: country.detail?.details_json?.trackOverrides || {},
+      },
+    }
+  })
+
+  return {
+    organizationName: details.partner?.organization_name || '',
+    businessStatus: details.partner?.business_status || '',
+    contactEmail: details.partner?.email || '',
+    contactPhone: details.partner?.phone_number || '',
+    website: details.partner?.website || '',
+    description: details.partner?.description || '',
+    serviceTracks: details.partner?.service_tracks || [],
+    homeCountries: details.partner?.home_countries || (details.partner?.home_country ? [details.partner.home_country] : []),
+    branches: (details.branches ?? []).map((branch) => ({
+      localId: branch.id,
+      branchName: branch.branch_name || '',
+      country: branch.country || '',
+      cityTown: branch.city_town || '',
+      primaryCounty: branch.primary_county || '',
+      nearbyCountiesServed: (branch.secondary_counties || []).join(', '),
+    })),
+    admins: (details.admins ?? []).map((admin) => ({
+      localId: admin.id,
+      email: admin.email || '',
+      assignedBranch: admin.assigned_branch || '',
+      cityTown: admin.city_town || '',
+      maxRequestsCapacity: admin.max_requests_capacity || '',
+    })),
+    destinationCountries,
+    proposedCommission: details.partner?.proposed_commission || '',
+    paymentMethods: details.partner?.payment_details?.methods || [],
+    operatingHours: details.partner?.operating_hours || {},
+    agreementAccepted: Boolean(details.partner?.agreement_accepted),
+    submittedAt: details.partner?.created_at || new Date().toISOString(),
+  }
+}
+
+function PartnerDetailsScreen({ details, onBack, onDownload, onMarkReviewed, markingReviewed }) {
+  if (!details) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+        Loading partner details...
+      </div>
+    )
+  }
+
+  const partner = details.partner
+  const status = String(partner?.status || 'pending').toLowerCase()
+
   return (
-    <div className="mt-2 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm">
-      <div>
-        <p className="font-semibold text-slate-900">Countries</p>
-        <ul className="mt-1 space-y-1 text-slate-700">
-          {details.countries.map((country) => (
-            <li key={country.id}>
-              {country.name}
-              {country.detail?.details_json?.visaProcessingTime
-                ? ` • Visa: ${country.detail.details_json.visaProcessingTime}`
-                : ''}
-            </li>
-          ))}
-        </ul>
+    <section className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Partners
+        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={onDownload}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800"
+          >
+            <FileDown className="h-4 w-4" />
+            Download PDF
+          </button>
+          {status !== 'reviewed' && (
+            <button
+              type="button"
+              onClick={onMarkReviewed}
+              disabled={markingReviewed}
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-3 py-2 text-sm font-semibold text-white disabled:opacity-70"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              {markingReviewed ? 'Marking...' : 'Reviewed'}
+            </button>
+          )}
+        </div>
       </div>
-      <div>
-        <p className="font-semibold text-slate-900">Branches</p>
-        <ul className="mt-1 space-y-1 text-slate-700">
-          {details.branches.map((branch) => (
-            <li key={branch.id}>
-              {branch.branch_name} ({branch.country}, {branch.city_town || 'n/a'})
-            </li>
-          ))}
-        </ul>
+
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <h2 className="text-xl font-semibold text-slate-900">{partner?.organization_name || '-'}</h2>
+        <p className="mt-1 text-sm text-slate-600">Status: {partner?.status || 'pending'}</p>
+        <div className="mt-3 grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
+          <p>Email: {partner?.email || '-'}</p>
+          <p>Phone: {partner?.phone_number || '-'}</p>
+          <p>Business status: {partner?.business_status || '-'}</p>
+          <p>Commission: {partner?.proposed_commission ?? 0}%</p>
+        </div>
       </div>
-      <div>
-        <p className="font-semibold text-slate-900">Services</p>
-        <ul className="mt-1 space-y-1 text-slate-700">
-          {details.services.map((service) => (
-            <li key={service.id}>
-              {service.service_name}
-              {service.destination_country ? ` (${service.destination_country})` : ''}
-              {service.estimated_processing_time
-                ? ` • ${service.estimated_processing_time}`
-                : ' • time not set'}
-            </li>
-          ))}
-        </ul>
+
+      <div className="grid gap-3">
+        <article className="rounded-xl border border-slate-200 bg-white p-4 text-sm">
+          <p className="font-semibold text-slate-900">Countries</p>
+          <ul className="mt-2 space-y-1 text-slate-700">
+            {(details.countries || []).map((country) => (
+              <li key={country.id}>{country.name}</li>
+            ))}
+          </ul>
+        </article>
+        <article className="rounded-xl border border-slate-200 bg-white p-4 text-sm">
+          <p className="font-semibold text-slate-900">Branches</p>
+          <ul className="mt-2 space-y-1 text-slate-700">
+            {(details.branches || []).map((branch) => (
+              <li key={branch.id}>
+                {branch.branch_name} ({branch.country || '-'}, {branch.city_town || '-'})
+              </li>
+            ))}
+          </ul>
+        </article>
+        <article className="rounded-xl border border-slate-200 bg-white p-4 text-sm">
+          <p className="font-semibold text-slate-900">Services</p>
+          <ul className="mt-2 space-y-1 text-slate-700">
+            {(details.services || []).map((service) => (
+              <li key={service.id}>
+                {service.service_name}
+                {service.destination_country ? ` (${service.destination_country})` : ''}
+              </li>
+            ))}
+          </ul>
+        </article>
+        <article className="rounded-xl border border-slate-200 bg-white p-4 text-sm">
+          <p className="font-semibold text-slate-900">Assigned Admins</p>
+          <ul className="mt-2 space-y-1 text-slate-700">
+            {(details.admins || []).map((admin) => (
+              <li key={admin.id}>
+                {admin.email} • {admin.assigned_branch || 'unassigned'}
+              </li>
+            ))}
+          </ul>
+        </article>
       </div>
-      <div>
-        <p className="font-semibold text-slate-900">Assigned Admins</p>
-        <ul className="mt-1 space-y-1 text-slate-700">
-          {details.admins.map((admin) => (
-            <li key={admin.id}>
-              {admin.email} • {admin.assigned_branch || 'unassigned'}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
+    </section>
   )
 }
 
@@ -146,7 +269,9 @@ export function PartnerAdminApp() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [data, setData] = useState(null)
   const [loadingData, setLoadingData] = useState(false)
-  const [expandedPartnerId, setExpandedPartnerId] = useState('')
+  const [selectedPartnerId, setSelectedPartnerId] = useState('')
+  const [partnerTab, setPartnerTab] = useState('new')
+  const [markingReviewedId, setMarkingReviewedId] = useState('')
   const [partnerDetailsMap, setPartnerDetailsMap] = useState({})
 
   useEffect(() => {
@@ -253,7 +378,7 @@ export function PartnerAdminApp() {
     await signOutAdmin()
     setSession(null)
     setData(null)
-    setExpandedPartnerId('')
+    setSelectedPartnerId('')
   }
 
   const handleToggleApk = async () => {
@@ -283,6 +408,57 @@ export function PartnerAdminApp() {
   }
 
   const referralRows = useMemo(() => data?.referrals ?? [], [data])
+  const partnerRows = useMemo(() => data?.partners ?? [], [data])
+  const filteredPartners = useMemo(
+    () =>
+      partnerRows.filter((partner) =>
+        partnerTab === 'reviewed'
+          ? String(partner.status || '').toLowerCase() === 'reviewed'
+          : String(partner.status || '').toLowerCase() !== 'reviewed',
+      ),
+    [partnerRows, partnerTab],
+  )
+  const selectedPartnerDetails = selectedPartnerId ? partnerDetailsMap[selectedPartnerId] : null
+
+  const handleOpenPartnerDetails = async (partnerId) => {
+    setSelectedPartnerId(partnerId)
+    try {
+      await loadPartnerDetails(partnerId)
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: error.message || 'Could not load full partner details.',
+      })
+    }
+  }
+
+  const handleMarkPartnerReviewed = async (partnerId) => {
+    setMarkingReviewedId(partnerId)
+    try {
+      await markPartnerAsReviewed(partnerId)
+      await refreshData()
+      if (partnerDetailsMap[partnerId]) {
+        setPartnerDetailsMap((previous) => ({
+          ...previous,
+          [partnerId]: {
+            ...previous[partnerId],
+            partner: {
+              ...previous[partnerId].partner,
+              status: 'reviewed',
+            },
+          },
+        }))
+      }
+      setMessage({ type: 'success', text: 'Partner marked as reviewed.' })
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: error.message || 'Could not mark partner as reviewed.',
+      })
+    } finally {
+      setMarkingReviewedId('')
+    }
+  }
 
   if (authState === 'loading') {
     return (
@@ -428,57 +604,69 @@ export function PartnerAdminApp() {
           {activePage === 'Partners' && (
             <section>
               <h1 className="text-2xl font-semibold tracking-[-0.03em]">Partners</h1>
-              <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200">
-                <table className="min-w-full divide-y divide-slate-200 text-sm">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left font-semibold text-slate-700">Name</th>
-                      <th className="px-3 py-2 text-left font-semibold text-slate-700">Email</th>
-                      <th className="px-3 py-2 text-left font-semibold text-slate-700">Countries</th>
-                      <th className="px-3 py-2 text-left font-semibold text-slate-700">Proposed Commission</th>
-                      <th className="px-3 py-2 text-left font-semibold text-slate-700">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {(data?.partners ?? []).map((partner) => (
-                      <tr key={partner.id} className="align-top">
-                        <td className="px-3 py-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const isExpanded = expandedPartnerId === partner.id
-                              setExpandedPartnerId(isExpanded ? '' : partner.id)
-                              if (!isExpanded) {
-                                loadPartnerDetails(partner.id).catch((error) => {
-                                  setMessage({
-                                    type: 'error',
-                                    text: error.message || 'Could not load full partner details.',
-                                  })
-                                })
-                              }
-                            }}
-                            className="inline-flex items-center gap-2 font-semibold text-slate-900"
-                          >
-                            {partner.organization_name}
-                            <ChevronDown
-                              className={`h-4 w-4 transition ${
-                                expandedPartnerId === partner.id ? 'rotate-180' : ''
-                              }`}
-                            />
-                          </button>
-                          {expandedPartnerId === partner.id && (
-                            <PartnerDetailsPanel details={partnerDetailsMap[partner.id]} />
-                          )}
-                        </td>
-                        <td className="px-3 py-2 text-slate-700">{partner.email}</td>
-                        <td className="px-3 py-2 text-slate-700">{partner.countries.join(', ') || '-'}</td>
-                        <td className="px-3 py-2 text-slate-700">{partner.proposed_commission ?? 0}%</td>
-                        <td className="px-3 py-2 text-slate-700">{partner.status}</td>
-                      </tr>
+              {selectedPartnerId ? (
+                <div className="mt-4">
+                  <PartnerDetailsScreen
+                    details={selectedPartnerDetails}
+                    onBack={() => setSelectedPartnerId('')}
+                    onDownload={() => {
+                      const snapshot = buildSnapshotFromPartnerDetails(selectedPartnerDetails)
+                      if (snapshot) {
+                        downloadPartnerSubmissionPdf(snapshot)
+                      }
+                    }}
+                    onMarkReviewed={() => handleMarkPartnerReviewed(selectedPartnerId)}
+                    markingReviewed={markingReviewedId === selectedPartnerId}
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="mt-4 inline-flex rounded-xl border border-slate-200 bg-white p-1">
+                    <button
+                      type="button"
+                      onClick={() => setPartnerTab('new')}
+                      className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                        partnerTab === 'new'
+                          ? 'bg-emerald-100 text-emerald-900'
+                          : 'text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      New
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPartnerTab('reviewed')}
+                      className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                        partnerTab === 'reviewed'
+                          ? 'bg-emerald-100 text-emerald-900'
+                          : 'text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      Reviewed
+                    </button>
+                  </div>
+
+                  <div className="mt-4 space-y-2">
+                    {filteredPartners.map((partner) => (
+                      <button
+                        key={partner.id}
+                        type="button"
+                        onClick={() => handleOpenPartnerDetails(partner.id)}
+                        className="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 transition hover:border-emerald-300 hover:bg-emerald-50"
+                      >
+                        {partner.organization_name}
+                      </button>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                    {!filteredPartners.length && (
+                      <p className="text-sm text-slate-500">
+                        {partnerTab === 'new'
+                          ? 'No new partners found.'
+                          : 'No reviewed partners found.'}
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
             </section>
           )}
 
